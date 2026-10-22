@@ -1,120 +1,586 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Soneca</title>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Soneca</title>
 <style>
-:root{--bg:#f2f0fa;--cd:#fff;--tx:#1b1838;--mu:#6b6790;--ac:#5b4bd6;--am:#e8892b;--bd:#e0dcf3;--c0:#f08a5d;--c1:#3fb4e5;--c2:#8a94f5;--c3:#4a3bb8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0a1d;--cd:#171433;--tx:#ece9ff;--mu:#9b96c6;--ac:#8b7dff;--am:#ffb15c;--bd:#2a2557;--c3:#6a5bf0}}
-:root[data-theme="dark"]{--bg:#0c0a1d;--cd:#171433;--tx:#ece9ff;--mu:#9b96c6;--ac:#8b7dff;--am:#ffb15c;--bd:#2a2557;--c3:#6a5bf0}
-*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--tx);font:16px/1.45 "Avenir Next",Nunito,system-ui,sans-serif;padding-bottom:84px}
-.v{max-width:520px;margin:0 auto;padding:18px 16px}.v[hidden]{display:none}
-h1{font:400 30px Georgia,serif;margin:6px 0 2px}h2{font:400 22px Georgia,serif;margin:0 0 8px}.mu{color:var(--mu)}.sm{font-size:13px}
-.cd{background:var(--cd);border:1px solid var(--bd);border-radius:18px;padding:16px;margin:14px 0}
-label{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--bd);gap:10px}
-select,input[type=time]{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;font:inherit}
-input[type=time]{font:400 44px Georgia,serif;width:100%;text-align:center;border:0;background:none;padding:4px}
-button{font:inherit;border:0;border-radius:14px;padding:14px;width:100%;margin:6px 0;cursor:pointer;background:var(--cd);color:var(--tx);border:1px solid var(--bd)}
-button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-.b1{background:linear-gradient(135deg,#5b4bd6,#8a5cf0);color:#fff;border:0;font-weight:600;padding:16px}
-nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--cd);border-top:1px solid var(--bd);padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px));z-index:3}
-nav button{border:0;background:none;margin:0;padding:8px;color:var(--mu)}nav button.on{color:var(--ac);font-weight:700}
-#mon{position:fixed;inset:0;z-index:5;background:#05040d;color:#b9b4e8;overflow:auto;--mu:#7f79ad;--bd:#241f4a;padding-top:env(safe-area-inset-top,0px)}
-#clk{font:300 84px Georgia,serif;text-align:center;margin:24px 0 0;color:#d9d5ff}
-.ch{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}.ch span{border:1px solid var(--bd);border-radius:99px;padding:3px 10px;font-size:13px}
-.tg{display:flex;gap:8px;flex-wrap:wrap}.tg button{width:auto;padding:7px 12px;border-radius:99px;font-size:14px}.tg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
-.st{display:flex;gap:10px}.st div{flex:1}.st b{display:block;font:400 24px Georgia,serif}
-.bar{height:8px;border-radius:9px;background:var(--bd);overflow:hidden;margin:4px 0 10px}.bar i{display:block;height:100%}
-#rg{text-align:center;padding-top:40px}#rg h2{font-size:38px;color:#ffd9a8}
-.it{display:flex;justify-content:space-between;align-items:center;text-align:left}
-#tt{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:var(--tx);color:var(--bg);padding:9px 14px;border-radius:12px;z-index:9;font-size:14px;max-width:90%}
-@media(prefers-reduced-motion:no-preference){.b1{transition:transform .15s}.b1:active{transform:scale(.98)}}
-</style></head><body>
-<main id="home" class="v">
-<h1>Soneca</h1><p class="mu" style="margin:0">Alarme inteligente e monitor de sono</p>
-<div class="cd"><div class="mu sm" style="text-align:center">Acordar às</div><input id="al" type="time" aria-label="Horário do alarme">
-<label>Janela inteligente<select id="win"><option value="0">Desligada</option><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option></select></label>
-<label>Som do alarme<select id="snd"><option value="amanhecer">Amanhecer</option><option value="sino">Sino</option><option value="pulso">Pulso</option></select></label>
-<label>Meta de sono<select id="gl"><option>6</option><option>7</option><option>7.5</option><option>8</option><option>9</option></select></label>
-<button onclick="tst()">Ouvir o som</button></div>
-<button class="b1" onclick="go(0)">Começar a dormir</button>
-<button onclick="go(1)">Ver uma noite simulada</button>
-<p class="mu sm">O alarme inteligente toca no sono leve dentro da janela escolhida, ou no horário final. Deixe o celular carregando ao lado do travesseiro, com o app aberto (a tela fica acesa). Se o app for fechado, o Android ainda toca o alarme no horário final. O som é analisado no aparelho e nunca é gravado.</p>
+:root{
+  --bg:#0a0919;--tx:#efedff;--mu:#9a96c8;--card:rgba(255,255,255,.055);--card-b:rgba(255,255,255,.09);--line:rgba(255,255,255,.09);
+  --ac:#8b7dff;--ac2:#b8a8ff;--am:#ffb15c;--ok:#4fd6a8;--bad:#ff7a7a;
+  --c0:#ff8f6b;--c1:#4cc3f5;--c2:#98a2ff;--c3:#5f50e8;
+  --glow1:rgba(124,108,255,.26);--glow2:rgba(76,195,245,.10);--navbg:rgba(14,12,34,.84);--inp:rgba(255,255,255,.07);--sh:none;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#f3f1fb;--tx:#1d1a3d;--mu:#6c6896;--card:#ffffff;--card-b:#ffffff;--line:rgba(40,25,110,.10);
+  --ac:#5b4bd6;--ac2:#7a63ee;--am:#d9772a;--ok:#1fa97f;--bad:#d9534f;--c3:#4a3bb8;
+  --glow1:rgba(124,108,255,.18);--glow2:rgba(76,195,245,.12);--navbg:rgba(255,255,255,.9);--inp:rgba(40,25,110,.06);--sh:0 6px 24px rgba(60,40,140,.08);
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  background:radial-gradient(900px 520px at 85% -8%,var(--glow1),transparent 62%),radial-gradient(700px 420px at -10% 8%,var(--glow2),transparent 60%),var(--bg);
+  background-attachment:fixed;color:var(--tx);
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding-top:env(safe-area-inset-top,0px);min-height:100vh;
+}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--ac);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+[hidden]{display:none!important}
+svg{display:block}
+.mu{color:var(--mu)}.sm{font-size:13px}.center{text-align:center}
+
+.view{max-width:520px;margin:0 auto;padding:18px 16px calc(110px + env(safe-area-inset-bottom,0px))}
+.ph{font-size:28px;font-weight:700;letter-spacing:-.02em;margin:6px 2px 14px}
+
+/* topo */
+.top{display:flex;align-items:center;gap:12px;margin:2px 2px 18px}
+.logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,#4b3bd0,#8b6cff);box-shadow:0 8px 20px rgba(91,75,214,.4)}
+.top h1{font-size:26px;font-weight:750;letter-spacing:-.02em;line-height:1.1}
+.top p{font-size:14px}
+
+/* cartões */
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;margin:14px 0;box-shadow:var(--sh)}
+.card-h{display:flex;align-items:center;gap:8px;font-weight:650;margin-bottom:6px}
+.card-h svg{color:var(--ac2)}
+.hero{position:relative;overflow:hidden;border-radius:30px;padding:22px 18px 18px;margin:0 0 14px;border:1px solid rgba(139,125,255,.28);
+  background:linear-gradient(160deg,rgba(124,108,255,.30),rgba(124,108,255,.06) 60%),var(--card);box-shadow:var(--sh)}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(184,168,255,.28),transparent 70%);pointer-events:none}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);text-align:center;font-weight:600}
+.timebox{position:relative;display:block;text-align:center;margin:2px 0}
+#tdisp{display:block;font-size:84px;font-weight:200;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+#al{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;cursor:pointer}
+.cdn{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--mu);font-size:14px;margin-bottom:16px}
+.cdn svg{color:var(--ac2)}.cdn b{color:var(--tx);font-weight:600}
+.days{display:flex;justify-content:space-between;gap:6px;margin:0 2px}
+.dy{width:42px;height:42px;border-radius:50%;background:var(--inp);color:var(--mu);font-weight:650;font-size:14px;border:1px solid transparent;transition:background .15s,color .15s}
+.dy.on{background:linear-gradient(140deg,#5b4bd6,#8a5cf0);color:#fff;box-shadow:0 4px 14px rgba(91,75,214,.45)}
+.pre{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.pp{font-size:13px;padding:6px 12px;border-radius:99px;background:var(--inp);color:var(--mu)}
+.pp.on{color:var(--tx);background:rgba(139,125,255,.28)}
+.dsum{margin-top:10px}
+
+/* segmentado e chips */
+.seg{display:flex;background:var(--inp);border-radius:14px;padding:4px;gap:4px;margin-top:10px}
+.seg button{flex:1;padding:9px 4px;border-radius:11px;font-size:14px;color:var(--mu);font-weight:550;transition:background .15s}
+.seg button.on{background:var(--ac);color:#fff;box-shadow:0 3px 10px rgba(91,75,214,.35)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{flex:1;min-width:84px;padding:10px 8px;border-radius:14px;background:var(--inp);text-align:center;border:1px solid transparent}
+.chip b{display:block;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}.chip span{font-size:12px;color:var(--mu)}
+.chip:active{border-color:var(--ac)}
+
+/* botões */
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:18px;font-weight:650;margin:10px 0 0;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh)}
+.btn.pri{background:linear-gradient(135deg,#5b4bd6,#9a63f2);color:#fff;border:0;font-size:17px;padding:18px;box-shadow:0 10px 26px rgba(91,75,214,.45)}
+.btn.ghost{background:none;border:0;box-shadow:none;color:var(--mu);font-weight:500}
+.btn.sm{width:auto;padding:9px 14px;border-radius:12px;font-size:14px;margin:0}
+@media(prefers-reduced-motion:no-preference){.btn,.chip,.dy{transition:transform .12s}.btn:active,.chip:active,.dy:active{transform:scale(.97)}}
+
+.banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;margin:0 0 14px;background:rgba(79,214,168,.12);border:1px solid rgba(79,214,168,.35)}
+.banner svg{color:var(--ok);flex:none}.banner div{flex:1;min-width:0}.banner b{display:block;font-size:15px}.banner span{font-size:13px;color:var(--mu)}
+.banner button{color:var(--bad);font-weight:600;font-size:14px;padding:6px 8px}
+.warn{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;margin:14px 0;background:rgba(255,177,92,.12);border:1px solid rgba(255,177,92,.4)}
+.warn svg{color:var(--am);flex:none}.warn p{flex:1;font-size:14px}
+.warn button{color:var(--am);font-weight:700;font-size:14px;padding:6px 8px}
+
+/* ajustes */
+.grp{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);font-weight:650;margin:22px 6px 6px}
+.list{padding:4px 16px}
+.row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line);width:100%;text-align:left}
+.row:first-child{border-top:0}
+.row>span{min-width:0}.row>span:not(.ico):not(.pill):not(.sw):not(.rd){flex:1}.row b{display:block;font-weight:600}.row small{display:block;color:var(--mu);font-size:13px;line-height:1.35;margin-top:1px}
+.row .ico{flex:none;color:var(--ac2);width:24px;display:grid;place-items:center}
+.pill{font-size:12px;padding:4px 10px;border-radius:99px;font-weight:650;flex:none}
+.pill.ok{background:rgba(79,214,168,.16);color:var(--ok)}.pill.no{background:rgba(255,177,92,.16);color:var(--am)}
+.opt{display:flex;align-items:center;gap:6px;border-top:1px solid var(--line)}.opt:first-child{border-top:0}
+.opt .pv{width:42px;height:42px;border-radius:50%;background:var(--inp);color:var(--ac2);display:grid;place-items:center;flex:none}
+.opt .sel{flex:1;display:flex;align-items:center;gap:10px;text-align:left;padding:12px 4px 12px 8px}
+.opt .sel>span:first-child{flex:1}.opt .sel b{display:block;font-weight:600}.opt .sel small{color:var(--mu);font-size:13px}
+.rd{width:22px;height:22px;border-radius:50%;border:2px solid var(--mu);flex:none;position:relative}
+.opt.on .rd{border-color:var(--ac)}.opt.on .rd::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--ac)}
+.sw{position:relative;width:48px;height:28px;flex:none}
+.sw input{appearance:none;-webkit-appearance:none;position:absolute;inset:0;width:100%;height:100%;margin:0;border-radius:99px;background:var(--inp);border:1px solid var(--line);cursor:pointer;transition:background .2s}
+.sw input:checked{background:var(--ac)}
+.sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;pointer-events:none;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.sw input:checked+i{transform:translateX(20px)}
+.rng{width:100%;appearance:none;-webkit-appearance:none;height:28px;background:transparent;margin:6px 0 2px;--p:50%}
+.rng::-webkit-slider-runnable-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--ac) var(--p),var(--inp) var(--p))}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-9px;border-radius:50%;background:#fff;border:0;box-shadow:0 2px 8px rgba(0,0,0,.4),0 0 0 4px rgba(139,125,255,.35)}
+.rngh{display:flex;justify-content:space-between;align-items:center}
+.tin{background:var(--inp);color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font:inherit;font-variant-numeric:tabular-nums}
+
+/* resultado */
+.bar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ib{width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--sh)}
+.rh{display:flex;align-items:center;gap:16px}
+.rh .rt{flex:1}.rh .big{font-size:34px;font-weight:300;letter-spacing:-.02em;line-height:1.1}
+.lbl{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;margin-bottom:6px}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.kp>div{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 8px;text-align:center;box-shadow:var(--sh)}
+.kp b{display:block;font-size:20px;font-weight:650;font-variant-numeric:tabular-nums}.kp span{font-size:12px;color:var(--mu)}
+.ph-r{display:flex;justify-content:space-between;font-size:14px}
+.bar{height:8px;border-radius:9px;background:var(--inp);overflow:hidden;margin:5px 0 12px}.bar i{display:block;height:100%;border-radius:9px}
+.ins{display:flex;gap:10px;align-items:flex-start;padding:7px 0}.ins svg{flex:none;color:var(--ac2);margin-top:2px}
+.tg{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.tg button{padding:8px 14px;border-radius:99px;font-size:14px;background:var(--inp);color:var(--mu)}
+.tg button.on{background:var(--ac);color:#fff}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin-top:8px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+
+/* histórico */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 4px}
+.kpis>div{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--sh)}
+.kpis b{display:block;font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpis span{font-size:12px;color:var(--mu)}
+.hr{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin:8px 0;box-shadow:var(--sh)}
+.hr>span:nth-child(2){flex:1}.hr b{display:block;font-weight:600}.hr>span:nth-child(2) b::first-letter,.cap::first-letter{text-transform:uppercase}
+.badge{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px;color:#0b0a1c;flex:none}
+.inf b{white-space:nowrap}.inf{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);font-size:15px}.inf:first-of-type{border-top:0}
+.up{color:var(--ok);font-weight:650}.dn{color:var(--bad);font-weight:650}
+.empty{text-align:center;padding:36px 12px}.empty svg{margin:0 auto 12px;color:var(--ac2);opacity:.9}
+
+/* navegação */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:3;display:flex;justify-content:center;gap:4px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--navbg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line)}
+nav button{flex:1;max-width:160px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:16px;color:var(--mu);font-size:12px;font-weight:600}
+nav button.on{color:var(--ac2);background:rgba(139,125,255,.14)}
+
+/* modo noite (monitor) e despertar */
+#mon{--mu:#7f79ad;--line:rgba(255,255,255,.1);--tx:#d9d5ff;--inp:rgba(255,255,255,.07);position:fixed;inset:0;z-index:6;overflow:auto;color:#b9b4e8;background:#04030b;
+  background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff9,transparent),radial-gradient(1px 1px at 78% 12%,#fff8,transparent),radial-gradient(1.5px 1.5px at 40% 32%,#fff6,transparent),radial-gradient(1px 1px at 88% 40%,#fff7,transparent),radial-gradient(1px 1px at 22% 62%,#fff6,transparent),radial-gradient(1.5px 1.5px at 66% 74%,#fff5,transparent),radial-gradient(1px 1px at 8% 86%,#fff7,transparent),radial-gradient(1px 1px at 92% 90%,#fff6,transparent);
+  padding-top:env(safe-area-inset-top,0px)}
+#mm{max-width:520px;margin:0 auto;padding:28px 18px calc(30px + env(safe-area-inset-bottom,0px));min-height:100vh;display:flex;flex-direction:column}
+#mm .moon{width:54px;height:54px;border-radius:50%;margin:10px auto 0;display:grid;place-items:center;color:#8f86e8;background:rgba(139,125,255,.1)}
+#clk{font-size:88px;font-weight:200;letter-spacing:-.03em;text-align:center;margin:18px 0 0;color:#cfc9ff;font-variant-numeric:tabular-nums;line-height:1.1}
+#inf{text-align:center;color:var(--mu);margin-top:4px}
+.sens{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.sens span{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-size:13px;color:var(--mu)}
+.sens span::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}.sens span.off::before{background:var(--mu)}
+#mm .card{background:rgba(255,255,255,.04);box-shadow:none}
+#mm .stop{margin-top:auto;padding-top:20px}
+#mm .stop .btn{background:rgba(255,255,255,.05);color:#b9b4e8}
+#wk{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 24px calc(30px + env(safe-area-inset-bottom,0px));color:#fff;background:linear-gradient(180deg,#241a52 0%,#a8487a 58%,#ffb36b 100%)}
+#mon.waking{background:#241a52}
+#mon.waking #mm{display:none}#mon.waking #wk{display:flex}
+#wk .sun{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.16);box-shadow:0 0 0 18px rgba(255,255,255,.07),0 0 0 40px rgba(255,255,255,.04)}
+#wkt{font-size:84px;font-weight:200;letter-spacing:-.03em;margin-top:44px;font-variant-numeric:tabular-nums;line-height:1.1}
+#wk h2{font-size:30px;font-weight:650;margin:6px 0 4px}#wk p{opacity:.85}
+#wk .btns{width:100%;max-width:360px;margin-top:44px}
+#wk .btn{background:rgba(255,255,255,.18);border:0;color:#fff;box-shadow:none}
+#wk .btn.off{background:#fff;color:#3a1f6e;font-size:18px;padding:20px}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:14px;z-index:9;font-size:14px;max-width:90%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+</style>
+</head>
+<body>
+
+<main id="home" class="view">
+  <header class="top"><div class="logo" id="logo"></div><div><h1>Soneca</h1><p class="mu" id="greet"></p></div></header>
+  <div id="banner"></div>
+  <section class="hero">
+    <div class="eyebrow">Acordar às</div>
+    <label class="timebox" aria-label="Horário do alarme"><span id="tdisp">07:00</span><input id="al" type="time"></label>
+    <div class="cdn" id="cdn"></div>
+    <div class="days" id="days" role="group" aria-label="Dias da semana"></div>
+    <div class="pre" id="pre"></div>
+    <div class="dsum mu sm center" id="dsum"></div>
+  </section>
+  <div id="chk"></div>
+  <section class="card">
+    <div class="card-h" id="h-win"></div>
+    <p class="mu sm">Toca no sono leve dentro da janela escolhida, e nunca depois do horário final.</p>
+    <div class="seg" id="win" role="group" aria-label="Janela inteligente"></div>
+  </section>
+  <section class="card">
+    <div class="card-h" id="h-sug"></div>
+    <div class="chips" id="sug"></div>
+    <p class="mu sm" style="margin-top:10px">Ciclos de 90 min, contando uns 15 min para pegar no sono. Toque para usar o horário.</p>
+  </section>
+  <button class="btn pri" data-a="go" data-v="0" id="bGo"></button>
+  <button class="btn" data-a="onlyAlarm" id="bAl" hidden></button>
+  <button class="btn ghost" data-a="go" data-v="1">Ver uma noite simulada</button>
+  <p class="mu sm center" style="margin-top:14px">O som é analisado no aparelho e nunca é gravado. Deixe o celular carregando perto da cama.</p>
 </main>
-<main id="mon" hidden><div class="v"><div id="clk">--:--</div><p id="inf" class="mu" style="text-align:center;margin:0"></p><div class="ch" id="chp"></div><div id="lh"></div><div id="rg" hidden><h2>Bom dia</h2><p>Hora de acordar.</p><button class="b1" onclick="fim()">Desligar</button><button onclick="soneca()">Soneca de 9 min</button></div><button id="stp" onclick="fim()" style="margin-top:30px">Parar e ver o resultado</button></div></main>
-<main id="res" class="v" hidden></main><main id="his" class="v" hidden></main>
-<nav><button id="n1" class="on" onclick="show('home')">Dormir</button><button id="n2" onclick="hist_()">Histórico</button></nav>
+
+<main id="his" class="view" hidden></main>
+<main id="set" class="view" hidden></main>
+<main id="res" class="view" hidden></main>
+
+<section id="mon" hidden>
+  <div id="mm">
+    <div class="moon" id="mmoon"></div>
+    <div id="clk">--:--</div>
+    <p id="inf"></p>
+    <div class="sens" id="chp"></div>
+    <div id="lh"></div>
+    <div class="stop"><button class="btn" id="stp" data-a="finish">Parar e ver o resultado</button></div>
+  </div>
+  <div id="wk">
+    <div class="sun" id="wsun"></div>
+    <div id="wkt">--:--</div>
+    <h2>Bom dia</h2>
+    <p>Hora de acordar.</p>
+    <div class="btns">
+      <button class="btn off" data-a="dismiss">Desligar</button>
+      <button class="btn" data-a="snooze" id="wsn">Soneca</button>
+    </div>
+  </div>
+</section>
+
+<nav id="nav" aria-label="Navegação principal">
+  <button id="n-home" data-a="tab" data-v="home" class="on"></button>
+  <button id="n-his" data-a="tab" data-v="his"></button>
+  <button id="n-set" data-a="tab" data-v="set"></button>
+</nav>
+<div id="toast" hidden></div>
+
 <script>
-const $=s=>document.querySelector(s),NM=['Acordado','REM','Leve','Profundo'],C=['var(--c0)','var(--c1)','var(--c2)','var(--c3)'];
-const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-let S=ld('cfg',{al:'07:00',win:30,snd:'amanhecer',gl:8}),H=ld('hist',[]),N=null,cur=null,tm,AC,mg,rt,WL,an,buf,pA,pL=0,mA=0,mN=0,base=0;const R={mic:0,mot:0,st:null};
-$('#al').value=S.al;$('#win').value=S.win;$('#snd').value=S.snd;$('#gl').value=S.gl;
-['al','win','snd','gl'].forEach(k=>$('#'+(k=='al'?'al':k)).onchange=e=>{S[k]=k=='al'||k=='snd'?e.target.value:+e.target.value;sv('cfg',S)});
-const fm=m=>Math.floor(m/60)+'h'+String(Math.round(m%60)).padStart(2,'0'),hr=t=>new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-function toast(m){let t=$('#tt');if(t)t.remove();t=document.createElement('div');t.id='tt';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3500)}
-function show(v){['home','mon','res','his'].forEach(x=>$('#'+x).hidden=x!=v);$('#n1').className=v=='home'?'on':'';$('#n2').className=v=='his'?'on':'';scrollTo(0,0)}
-/* áudio */
+'use strict';
+/* ============ utilitários ============ */
+const $=s=>document.querySelector(s);
+const NM=['Acordado','REM','Leve','Profundo'],C=['var(--c0)','var(--c1)','var(--c2)','var(--c3)'];
+const DOW=['D','S','T','Q','Q','S','S'],DOWF=['domingo','segunda','terça','quarta','quinta','sexta','sábado'],DOWS=['dom','seg','ter','qua','qui','sex','sáb'];
+const TG=['Café','Álcool','Estresse','Exercício','Tela até tarde','Refeição pesada'];
+const SND=[['amanhecer','Amanhecer','Notas suaves que sobem aos poucos'],['sino','Sino','Timbre claro e cristalino'],['pulso','Pulso','Bipes curtos e insistentes']];
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ic=(d,s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const IC={
+ moon:ic('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'),
+ alarm:ic('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M5 3.5 2 6M19 3.5 22 6"/>'),
+ chart:ic('<path d="M5 20V11M12 20V4M19 20v-6"/>'),
+ sliders:ic('<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>'),
+ play:ic('<path d="M8 5v14l11-7z" fill="currentColor"/>',20),
+ bell:ic('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/>'),
+ sun:ic('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+ bed:ic('<path d="M3 19V6M3 15h18v4M21 15v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="1.6"/>'),
+ share:ic('<path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>'),
+ x:ic('<path d="M6 6l12 12M18 6 6 18"/>'),
+ chev:ic('<path d="M9 6l6 6-6 6"/>',18),
+ check:ic('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+ warn:ic('<path d="M12 3 2 20h20L12 3zM12 10v4M12 17h.01"/>'),
+ target:ic('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>'),
+ vol:ic('<path d="M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 0 1 0 7"/>'),
+ mic:ic('<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
+ battery:ic('<rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 11v2M6 10v4"/>'),
+ trash:ic('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
+ copy:ic('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'),
+ star:ic('<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>'),
+ info:ic('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>')
+};
+const fm=m=>Math.floor(m/60)+'h'+String(Math.round(m%60)).padStart(2,'0');
+const hr=t=>new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const wkd=t=>new Date(t).toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','');
+const fdt=t=>wkd(t)+' '+hr(t);
+const dur=ms=>{const m=Math.max(0,Math.round(ms/6e4)),h=Math.floor(m/60);return(h?h+' h ':'')+(m%60)+' min'};
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+let tT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tT);tT=setTimeout(()=>t.hidden=true,3600)}
+async function copy(t){try{await navigator.clipboard.writeText(t);return 1}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();let ok=0;try{ok=document.execCommand('copy')}catch(e2){}a.remove();return ok}}
+
+/* ============ estado e configurações ============ */
+const DEF={al:'07:00',win:30,snd:'amanhecer',gl:8,days:0,vol:100,ramp:1,vib:1,snz:9,theme:'auto',dim:1,rem:0,remT:'22:30'};
+let S=Object.assign({},DEF,ld('cfg',{})),H=ld('hist',[]).map(n=>Object.assign({tags:[]},n)),N=null,cur=null,tm,ST={ringing:false,at:0,snz:0,exact:true},wakeOn=false,wkI,lastView='home';
+const R={mic:0,mot:0,st:null};let an,buf,pA,pL=0,mA=0,mN=0,base=0,WL;
+
+function applyTheme(){const t=S.theme==='auto'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):S.theme;document.documentElement.dataset.theme=t}
+matchMedia('(prefers-color-scheme: light)').addEventListener&&matchMedia('(prefers-color-scheme: light)').addEventListener('change',applyTheme);
+
+/* ============ ponte com o Android ============ */
+const CAP=window.Capacitor||{},NAT=!!(CAP.isNativePlatform&&CAP.isNativePlatform());
+const PL=CAP.Plugins||{};
+const A=NAT?(PL.SonecaAlarm||(CAP.registerPlugin&&CAP.registerPlugin('SonecaAlarm'))):null;
+const LN=NAT?(PL.LocalNotifications||null):null;
+const nat=async(m,a)=>{if(!A)return null;try{return await A[m](a||{})}catch(e){return null}};
+const acfg=()=>({sound:S.snd,volume:S.vol,ramp:S.ramp?30:0,snooze:S.snz,vibrate:!!S.vib});
+const syncAudio=()=>nat('configure',acfg());
+async function refreshStatus(){const s=await nat('status');if(s){ST=s;if(s.ringing&&!wakeOn)onRing(true)}renderBanner();renderChk();if(!$('#set').hidden)renderSet()}
+async function ready(){
+  try{if(LN)await LN.requestPermissions()}catch(e){}
+  const s=await nat('status');
+  if(s&&s.exact===false){toast('Permita "Alarmes e lembretes" e toque de novo');await nat('openSettings',{type:'exact'});return false}
+  return true}
+async function applyReminder(){
+  if(!LN)return;
+  try{await LN.cancel({notifications:[{id:2}]});if(!S.rem)return;
+    await LN.createChannel({id:'lembrete',name:'Lembrete de hora de dormir',importance:3,vibration:true});await LN.requestPermissions();
+    const [h,m]=S.remT.split(':').map(Number);
+    await LN.schedule({notifications:[{id:2,title:'Hora de dormir',body:'Programe o despertador e comece a monitorar o sono.',channelId:'lembrete',schedule:{on:{hour:h,minute:m},allowWhileIdle:true}}]})
+  }catch(e){}}
+if(A){try{A.addListener('ringState',e=>onRing(e.ringing,e.reason,e.at))}catch(e){}}
+
+/* ============ navegação ============ */
+function show(v){
+  ['home','his','set','res'].forEach(x=>$('#'+x).hidden=x!=v);
+  if(v!='res')lastView=v;
+  ['home','his','set'].forEach(x=>$('#n-'+x).classList.toggle('on',x==(v=='res'?'home':v)));
+  $('#nav').hidden=false;scrollTo(0,0)}
+function tab(v){if(v=='his')hist_();else if(v=='set'){renderSet();show('set');refreshStatus()}else{show('home');renderHome();refreshStatus()}}
+
+/* ============ tela inicial ============ */
+function nextTarget(){
+  const [h,m]=S.al.split(':').map(Number);let d;
+  for(let i=0;i<8;i++){d=new Date();d.setDate(d.getDate()+i);d.setHours(h,m,0,0);
+    if(d<=Date.now()+6e4)continue;if(!S.days||(S.days>>d.getDay()&1))return+d}
+  return+d}
+function daysText(k){return k==0?'Uma vez':k==127?'Todos os dias':k==62?'Dias úteis':k==65?'Fins de semana':DOWF.filter((_,i)=>k>>i&1).join(', ')}
+function renderCdn(){const tg=nextTarget();$('#cdn').innerHTML=IC.alarm+`<span>Toca em <b>${dur(tg-Date.now())}</b> · ${fdt(tg)}</span>`}
+function renderBanner(){
+  const now=Date.now();let t=0,l='';
+  if(ST.snz>now){t=ST.snz;l='Soneca ativa'}else if(ST.at>now){t=ST.at;l='Despertador ativo'}
+  $('#banner').innerHTML=t?`<div class="banner">${IC.bell}<div><b>${l}</b><span>${fdt(t)} · toca em ${dur(t-now)}</span></div><button data-a="cancelAlarm">Cancelar</button></div>`:''}
+function renderChk(){
+  $('#chk').innerHTML=A&&ST.exact===false?`<div class="warn">${IC.warn}<p>Permita <b>Alarmes e lembretes</b> para o despertador tocar na hora certa.</p><button data-a="open" data-v="exact">Permitir</button></div>`:''}
+function renderHome(){
+  const h=new Date().getHours();
+  $('#greet').textContent=(h<5?'Boa madrugada':h<12?'Bom dia':h<18?'Boa tarde':'Boa noite')+' · durma melhor';
+  $('#tdisp').textContent=S.al;$('#al').value=S.al;
+  $('#days').innerHTML=DOW.map((d,i)=>{const on=S.days>>i&1;return`<button class="dy ${on?'on':''}" data-a="day" data-v="${i}" aria-pressed="${!!on}" aria-label="${DOWF[i]}">${d}</button>`}).join('');
+  $('#pre').innerHTML=[[0,'Uma vez'],[62,'Dias úteis'],[127,'Todos os dias']].map(([k,l])=>`<button class="pp ${S.days==k?'on':''}" data-a="preset" data-v="${k}">${l}</button>`).join('');
+  $('#dsum').textContent=[0,62,127].includes(S.days)?'':daysText(S.days);$('#dsum').hidden=[0,62,127].includes(S.days);
+  $('#win').innerHTML=[[0,'Desligada'],[15,'15 min'],[30,'30 min'],[45,'45 min']].map(([v,l])=>`<button class="${S.win==v?'on':''}" data-a="win" data-v="${v}">${l}</button>`).join('');
+  const b=Date.now()+15*6e4;
+  $('#sug').innerHTML=[4,5,6].map(k=>{const d=new Date(b+k*90*6e4),t=hr(d);return`<button class="chip" data-a="useTime" data-v="${t}"><b>${t}</b><span>${String(k*1.5).replace('.',',')} h de sono</span></button>`}).join('');
+  renderCdn();renderBanner();renderChk()}
+
+/* ============ ajustes ============ */
+const seg=(k,opts,v)=>`<div class="seg" role="group">${opts.map(([val,l])=>`<button class="${v==val?'on':''}" data-a="set" data-k="${k}" data-v="${val}">${l}</button>`).join('')}</div>`;
+const sw=(k,on)=>`<span class="sw"><input type="checkbox" data-chg="${k}" ${on?'checked':''}><i></i></span>`;
+function renderSet(){
+  const perm=A?`<div class="grp">Confiabilidade</div><div class="card list">
+   <button class="row" data-a="open" data-v="exact"><span class="ico">${IC.alarm}</span><span><b>Alarmes e lembretes</b><small>Necessário para tocar na hora certa</small></span><span class="pill ${ST.exact?'ok':'no'}">${ST.exact?'Permitido':'Permitir'}</span></button>
+   <button class="row" data-a="open" data-v="battery"><span class="ico">${IC.battery}</span><span><b>Bateria sem restrições</b><small>Evita que o Android feche o app durante a noite</small></span>${IC.chev}</button>
+   <button class="row" data-a="open" data-v="app"><span class="ico">${IC.mic}</span><span><b>Notificações e microfone</b><small>Permissões do app no Android</small></span>${IC.chev}</button></div>`:'';
+  $('#set').innerHTML=`<h2 class="ph">Ajustes</h2>
+  <div class="grp">Som do alarme</div>
+  <div class="card list">${SND.map(([k,n,d])=>`<div class="opt ${S.snd==k?'on':''}"><button class="pv" data-a="preview" data-v="${k}" aria-label="Ouvir ${n}">${IC.play}</button><button class="sel" data-a="set" data-k="snd" data-v="${k}"><span><b>${n}</b><small>${d}</small></span><span class="rd"></span></button></div>`).join('')}</div>
+  <div class="card list">
+   <div class="row" style="display:block"><div class="rngh"><b>Volume do alarme</b><span class="mu" id="volv">${S.vol}%</span></div><input class="rng" type="range" min="30" max="100" step="5" value="${S.vol}" data-in="vol" style="--p:${(S.vol-30)/70*100}%" aria-label="Volume do alarme"><small class="mu">${A?'Toca pelo canal de alarme do Android: funciona mesmo com o celular no mudo ou em Não perturbe.':'No celular, o alarme toca mesmo no modo mudo.'}</small></div>
+   <label class="row"><span><b>Volume crescente</b><small>Começa baixo e sobe em 30 segundos</small></span>${sw('ramp',S.ramp)}</label>
+   <label class="row"><span><b>Vibrar</b><small>Vibra junto com o som</small></span>${sw('vib',S.vib)}</label></div>
+  <div class="grp">Ao acordar</div>
+  <div class="card"><b>Duração da soneca</b>${seg('snz',[[5,'5 min'],[9,'9 min'],[10,'10 min'],[15,'15 min']],S.snz)}</div>
+  <div class="grp">Sono</div>
+  <div class="card"><b>Meta de sono</b>${seg('gl',[[6,'6 h'],[7,'7 h'],[7.5,'7,5 h'],[8,'8 h'],[9,'9 h']],S.gl)}</div>
+  <div class="card list"><label class="row"><span><b>Lembrete de hora de dormir</b><small>Uma notificação diária para você começar a se preparar</small></span>${sw('rem',S.rem)}</label>
+   ${S.rem?`<div class="row"><span><b>Horário do lembrete</b></span><input class="tin" type="time" value="${S.remT}" data-chg="remT"></div>`:''}</div>
+  <div class="grp">Aparência</div>
+  <div class="card"><b>Tema</b>${seg('theme',[['auto','Automático'],['light','Claro'],['dark','Escuro']],S.theme)}</div>
+  ${A?`<div class="card list"><label class="row"><span><b>Escurecer a tela durante o sono</b><small>Reduz o brilho no modo noite</small></span>${sw('dim',S.dim)}</label></div>`:''}
+  ${perm}
+  <div class="grp">Dados</div>
+  <div class="card list">
+   <button class="row" data-a="exportCsv"><span class="ico">${IC.copy}</span><span><b>Copiar histórico (CSV)</b><small>Copia as noites registradas para a área de transferência</small></span></button>
+   <button class="row" data-a="clearHist"><span class="ico" style="color:var(--bad)">${IC.trash}</span><span><b style="color:var(--bad)">Apagar histórico</b><small>Remove todas as noites salvas neste aparelho</small></span></button></div>
+  <p class="mu sm center" style="margin-top:18px">Soneca 2.0 · As fases do sono são estimativas por movimento, som e ciclos de sono. Servem como referência, não como exame médico.</p>`}
+function setCfg(k,v){S[k]=v;sv('cfg',S);
+  if(k=='theme')applyTheme();
+  if(['snd','vol','ramp','vib','snz'].includes(k))syncAudio();
+  if(k=='rem'||k=='remT')applyReminder();
+  renderSet();renderHome()}
+
+/* ============ áudio web (somente fora do app Android) ============ */
+let AC,mg,rt;
 const ac=()=>{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();return AC};
 function nt(f,t,d,ty,v){const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=ty;o.frequency.value=f;o.connect(g);g.connect(mg);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.06);g.gain.exponentialRampToValueAtTime(.001,t+d);o.start(t);o.stop(t+d)}
 const P={amanhecer:()=>[523,659,784,1047].forEach((f,i)=>nt(f,AC.currentTime+i*.55,2.6,'sine',.3)),sino:()=>[880,1320,1760].forEach((f,i)=>nt(f,AC.currentTime,2.2,'triangle',.22/(i+1))),pulso:()=>[0,.3,.6].forEach(d=>nt(660,AC.currentTime+d,.2,'square',.1))};
-function ring(pv){const c=ac();hush();mg=c.createGain();mg.connect(c.destination);mg.gain.setValueAtTime(.04,c.currentTime);mg.gain.linearRampToValueAtTime(pv?.7:1,c.currentTime+(pv?2:45));P[S.snd]();rt=setInterval(()=>{P[S.snd]();navigator.vibrate&&navigator.vibrate(300)},3000)}
-function hush(){clearInterval(rt);try{mg.disconnect()}catch(e){}}
-function tst(){ring(1);setTimeout(hush,6000)}
-/* sensores */
+function webRing(pv,snd){const c=ac(),k=snd||S.snd;webHush();mg=c.createGain();mg.connect(c.destination);mg.gain.setValueAtTime(.04,c.currentTime);mg.gain.linearRampToValueAtTime(pv?.7:1,c.currentTime+(pv?2:(S.ramp?45:1)));P[k]();rt=setInterval(()=>{P[k]();navigator.vibrate&&S.vib&&navigator.vibrate(300)},3000)}
+function webHush(){clearInterval(rt);try{mg.disconnect()}catch(e){}}
+/* no app Android o som sai pelo serviço nativo (canal de alarme, ignora o mudo) */
+function ring(){if(A)nat('ring',Object.assign(acfg(),{after:N?N.tg:0}));else webRing(0)}
+function hush(){if(A)nat('stop');webHush()}
+function preview(k){if(A){nat('preview',{sound:k,volume:S.vol})}else{webRing(1,k);setTimeout(webHush,5000)}}
+
+/* ============ sensores ============ */
 async function sens(){
-try{const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false}}),c=ac();an=c.createAnalyser();an.fftSize=1024;buf=new Float32Array(1024);c.createMediaStreamSource(s).connect(an);R.mic=1;R.st=s}catch(e){}
-try{if(window.DeviceMotionEvent){if(DeviceMotionEvent.requestPermission&&await DeviceMotionEvent.requestPermission()!=='granted')throw 0;addEventListener('devicemotion',mo)}}catch(e){}
-try{WL=await navigator.wakeLock.request('screen')}catch(e){}}
+  try{const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false}}),c=ac();an=c.createAnalyser();an.fftSize=1024;buf=new Float32Array(1024);c.createMediaStreamSource(s).connect(an);R.mic=1;R.st=s}catch(e){}
+  try{if(window.DeviceMotionEvent){if(DeviceMotionEvent.requestPermission&&await DeviceMotionEvent.requestPermission()!=='granted')throw 0;addEventListener('devicemotion',mo)}}catch(e){}
+  try{WL=await navigator.wakeLock.request('screen')}catch(e){}}
 function mo(e){const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;R.mot=1;const m=Math.hypot(a.x,a.y,a.z);if(pA!=null){mA+=Math.abs(m-pA);mN++}pA=m}
-/* estimativa de fases: 0 acordado, 1 REM, 2 leve, 3 profundo (heurística, não é exame médico) */
+
+/* ============ monitoramento do sono ============ */
+/* fases: 0 acordado, 1 REM, 2 leve, 3 profundo (heurística, não é exame médico) */
 function est(t,s,hs){if(t<8)return t<4||(hs&&s>.15)?0:2;if(hs&&s>.55)return 0;if(hs&&s>.22)return 2;const p=(t%90)/90;let b=p<.1?2:p<.5?(t<280?3:2):p<.6?2:1;if(hs&&s>.1&&b==3)b=2;return b}
-function tgtT(){const [h,m]=S.al.split(':'),d=new Date();d.setHours(+h,+m,0,0);if(d<=Date.now()+6e4)d.setDate(d.getDate()+1);return +d}
+const sched=tg=>{const [h,m]=S.al.split(':').map(Number);return Object.assign({at:tg,hh:h,mm:m,days:S.days},acfg())};
 async function go(sim){
-const tg=tgtT();N={sim,tg,ws:tg-S.win*6e4,e:[],sm:0,noise:0,a:0,n:0,ns:0,rung:0,woke:0,t0:sim?tg-(S.gl*60+Math.round(Math.random()*40-20))*6e4:Date.now(),next:Date.now()+6e4,bout:0};
-show('mon');$('#rg').hidden=1;$('#stp').hidden=0;$('#chp').innerHTML='';
-$('#inf').textContent=(sim?'Simulação · ':'')+'Alarme às '+hr(tg)+(S.win?' · janela desde '+hr(N.ws):'');
-if(sim){N.cl=80+Math.random()*25;tm=setInterval(dtick,20)}else{ac();await sens();tm=setInterval(rtick,1000);try{await document.documentElement.requestFullscreen()}catch(e){}}
-draw()}
-function rtick(){let lv=0,tr=0;if(an){an.getFloatTimeDomainData(buf);let q=0;for(const v of buf)q+=v*v;lv=Math.sqrt(q/buf.length);tr=Math.abs(lv-pL);pL=lv;base=base?base*.98+lv*.02:lv}
-const mv=mN?mA/mN:0;mA=mN=0;N.a+=Math.min(1,mv/.3)+Math.min(1,tr/.05)*.5;N.n++;if(lv>Math.max(.02,base*3))N.ns++;
-while(Date.now()>=N.next){mi(Math.min(1,3*N.a/Math.max(1,N.n)),N.ns>=8);N.a=N.n=N.ns=0;N.next+=6e4}
-$('#clk').textContent=hr(Date.now())}
-function dtick(){const t=N.e.length,p=(t%N.cl)/N.cl;let s=t<10?0:p<.1?2:p<.5?(t<280?3:2):p<.6?2:1;if(N.aw>0){s=0;N.aw--}else if(t>30&&Math.random()<.008)N.aw=2;
-const a=[.85,.12,.3,.03][s]*(.6+Math.random()*.8)+(Math.random()<.04?.3:0);if(!N.bout&&s>1&&Math.random()<.02)N.bout=10+Math.round(Math.random()*15);const nz=N.bout>0&&s>1;if(N.bout)N.bout--;mi(Math.min(1,a),nz);$('#clk').textContent=hr(N.t0+N.e.length*6e4)}
-function mi(act,nz){const hs=N.sim||R.mic||R.mot;N.sm=hs?N.sm*.7+act*.3:.12;const t=N.e.length,s=est(t,N.sm,hs);N.e.push(s);if(nz&&s)N.noise++;
-const now=N.sim?N.t0+t*6e4:Date.now();$('#chp').innerHTML=N.sim?'<span>Simulação rápida</span>':'<span>'+(R.mic?'Som ativo':'Sem microfone')+'</span><span>'+(R.mot?'Movimento ativo':'Sem movimento')+'</span>';
-if(!N.rung&&t>20&&(now>=N.tg||(S.win&&now>=N.ws&&(s==0||s==2)))){N.rung=1;N.woke=Math.max(0,Math.round((N.tg-now)/6e4));if(N.sim)fim();else{ring();$('#rg').hidden=0;$('#stp').hidden=1;navigator.vibrate&&navigator.vibrate([400,200,400])}}
-draw()}
-function draw(){$('#lh').innerHTML=N.e.length>1?hyp({e:N.e.join('')}):''}
-function soneca(){hush();$('#rg').hidden=1;$('#stp').hidden=0;N.tg=N.ws=Date.now()+9*6e4;N.rung=0;toast('Toca de novo em 9 minutos')}
-function fim(){clearInterval(tm);hush();try{R.st&&R.st.getTracks().forEach(t=>t.stop());removeEventListener('devicemotion',mo);WL&&WL.release();document.fullscreenElement&&document.exitFullscreen()}catch(e){}
-R.st=null;if(!N||N.e.length<5){show('home');toast('Sono curto demais para gerar relatório');return}
-const n={id:Date.now(),t0:N.t0,e:N.e.join(''),noise:N.noise,gl:S.gl,woke:N.woke,sim:N.sim?1:0,mic:N.sim||R.mic?1:0,tags:[]};n.sc=sc(n);N=null;if(!n.sim){H.unshift(n);H=H.slice(0,60);sv('hist',H)}res(n)}
-/* resultados */
+  if(!sim&&A&&!await ready())return;
+  const tg=nextTarget();
+  N={sim,tg,ws:tg-S.win*6e4,e:[],sm:0,noise:0,a:0,n:0,ns:0,rung:0,woke:0,t0:sim?tg-(S.gl*60+Math.round(Math.random()*40-20))*6e4:Date.now(),next:Date.now()+6e4,bout:0};
+  hideWake();$('#mon').hidden=false;$('#nav').hidden=true;$('#stp').hidden=false;$('#chp').innerHTML='';$('#lh').innerHTML='';
+  $('#clk').textContent=hr(sim?N.t0:Date.now());$('#inf').textContent=(sim?'Simulação · ':'')+'Alarme às '+hr(tg)+(S.win?' · janela desde '+hr(N.ws):'');
+  if(sim){N.cl=80+Math.random()*25;tm=setInterval(dtick,20)}
+  else{
+    if(A){await nat('schedule',sched(tg));nat('keepAwake',{on:true});if(S.dim)nat('brightness',{value:.03})}
+    ac();await sens();tm=setInterval(rtick,1000);try{await document.documentElement.requestFullscreen()}catch(e){}}
+  draw()}
+function rtick(){
+  let lv=0,tr=0;if(an){an.getFloatTimeDomainData(buf);let q=0;for(const v of buf)q+=v*v;lv=Math.sqrt(q/buf.length);tr=Math.abs(lv-pL);pL=lv;base=base?base*.98+lv*.02:lv}
+  const mv=mN?mA/mN:0;mA=mN=0;N.a+=Math.min(1,mv/.3)+Math.min(1,tr/.05)*.5;N.n++;if(lv>Math.max(.02,base*3))N.ns++;
+  while(N&&Date.now()>=N.next){mi(Math.min(1,3*N.a/Math.max(1,N.n)),N.ns>=8);if(!N)return;N.a=N.n=N.ns=0;N.next+=6e4}
+  $('#clk').textContent=hr(Date.now())}
+function dtick(){
+  const t=N.e.length,p=(t%N.cl)/N.cl;let s=t<10?0:p<.1?2:p<.5?(t<280?3:2):p<.6?2:1;
+  if(N.aw>0){s=0;N.aw--}else if(t>30&&Math.random()<.008)N.aw=2;
+  const a=[.85,.12,.3,.03][s]*(.6+Math.random()*.8)+(Math.random()<.04?.3:0);
+  if(!N.bout&&s>1&&Math.random()<.02)N.bout=10+Math.round(Math.random()*15);
+  const nz=N.bout>0&&s>1;if(N.bout)N.bout--;mi(Math.min(1,a),nz);if(N)$('#clk').textContent=hr(N.t0+N.e.length*6e4)}
+function mi(act,nz){
+  const hs=N.sim||R.mic||R.mot;N.sm=hs?N.sm*.7+act*.3:.12;
+  const t=N.e.length,s=est(t,N.sm,hs);N.e.push(s);if(nz&&s)N.noise++;
+  const now=N.sim?N.t0+t*6e4:Date.now();
+  $('#chp').innerHTML=N.sim?'<span>Simulação rápida</span>':`<span class="${R.mic?'':'off'}">${R.mic?'Som ativo':'Sem microfone'}</span><span class="${R.mot?'':'off'}">${R.mot?'Movimento ativo':'Sem movimento'}</span>`;
+  if(!N.rung&&t>20&&(now>=N.tg||(S.win&&now>=N.ws&&(s==0||s==2)))){
+    N.rung=1;N.woke=Math.max(0,Math.round((N.tg-now)/6e4));
+    if(N.sim){fim();return}
+    ring();showWake()}
+  draw()}
+function draw(){if(N)$('#lh').innerHTML=N.e.length>1?`<div class="card">${hyp({e:N.e.join(''),t0:N.t0})}</div>`:''}
+
+/* ============ despertar ============ */
+function showWake(){
+  if(wakeOn)return;wakeOn=true;
+  $('#mon').hidden=false;$('#nav').hidden=true;$('#mon').classList.add('waking');
+  $('#wsn').textContent='Soneca de '+S.snz+' min';$('#wkt').textContent=hr(Date.now());
+  clearInterval(wkI);wkI=setInterval(()=>$('#wkt').textContent=hr(Date.now()),1000);
+  if(A&&S.dim)nat('brightness',{value:-1});
+  if(!A&&navigator.vibrate&&S.vib)navigator.vibrate([400,200,400])}
+function hideWake(){wakeOn=false;clearInterval(wkI);$('#mon').classList.remove('waking')}
+function closeMon(){$('#mon').hidden=true;hideWake();show('home');renderHome();refreshStatus()}
+/* o Android avisa quando o alarme começa/termina (inclusive pelos botões da notificação) */
+function onRing(on,reason,at){
+  if(on){if(N&&!N.sim&&!N.rung){N.rung=1;N.woke=Math.max(0,Math.round((N.tg-Date.now())/6e4))}showWake();return}
+  if(!wakeOn)return;
+  hideWake();
+  if(reason==='snooze'){
+    if(N){N.tg=N.ws=at||Date.now()+S.snz*6e4;N.rung=0;$('#stp').hidden=false;if(A&&S.dim)nat('brightness',{value:.03})}else closeMon();
+    toast('Toca de novo em '+S.snz+' min')}
+  else if(N&&N.rung)fim();else closeMon()}
+function dismiss(){hideWake();hush();if(N)fim();else closeMon()}
+async function snooze(){
+  hideWake();
+  if(A)await nat('snooze',{minutes:S.snz});else webHush();
+  if(N){N.tg=N.ws=Date.now()+S.snz*6e4;N.rung=0;$('#stp').hidden=false;if(A&&S.dim)nat('brightness',{value:.03})}else closeMon();
+  toast('Toca de novo em '+S.snz+' min')}
+async function onlyAlarm(){
+  if(!A||!await ready())return;
+  const tg=nextTarget();await nat('schedule',sched(tg));await refreshStatus();
+  toast('Despertador ativado para '+fdt(tg))}
+function fim(){
+  const micOn=R.mic;
+  clearInterval(tm);hideWake();hush();
+  if(A&&N&&!N.sim){if(!N.rung)nat('cancel');nat('keepAwake',{on:false});nat('brightness',{value:-1})}
+  try{R.st&&R.st.getTracks().forEach(t=>t.stop());removeEventListener('devicemotion',mo);WL&&WL.release();document.fullscreenElement&&document.exitFullscreen()}catch(e){}
+  R.st=null;R.mic=0;R.mot=0;an=null;
+  $('#mon').hidden=true;lastView='home';
+  if(!N||N.e.length<5){N=null;show('home');renderHome();refreshStatus();toast('Sono curto demais para gerar relatório');return}
+  const n={id:Date.now(),t0:N.t0,e:N.e.join(''),noise:N.noise,gl:S.gl,woke:N.woke,sim:N.sim?1:0,mic:N.sim||micOn?1:0,tags:[]};
+  n.sc=sc(n);
+  const wasSim=N.sim;N=null;
+  if(!wasSim){H.unshift(n);H=H.slice(0,60);sv('hist',H)}
+  res(n);refreshStatus()}
+
+/* ============ resultados ============ */
 function stt(n){const e=[...n.e].map(Number),L=e.length,c=k=>e.filter(x=>x==k).length;return{L,aw:c(0),r:c(1),l:c(2),d:c(3),as:L-c(0),ef:(L-c(0))/L}}
 function sc(n){const s=stt(n);return Math.round(45*Math.min(1,s.as/(n.gl*60))+25*s.ef+20*Math.min(1,(s.r+s.d)/(.4*s.as||1))+10*(1-Math.min(1,n.noise/60)))}
-function hyp(n){const e=[...n.e].map(Number),L=e.length,W=316,h=28;let r='',i=0;while(i<L){let j=i;while(j<L&&e[j]==e[i])j++;r+=`<rect x="${52+i*W/L}" y="${e[i]*h+4}" width="${Math.max(1.5,(j-i)*W/L)}" height="${h-8}" rx="3" fill="${C[e[i]]}"/>`;i=j}
-return `<svg viewBox="0 0 370 ${4*h+22}" width="100%" role="img" aria-label="Gráfico das fases do sono">${NM.map((s,k)=>`<text x="0" y="${k*h+19}" font-size="11" fill="var(--mu)">${s}</text><line x1="52" x2="368" y1="${k*h+h/2+4}" y2="${k*h+h/2+4}" stroke="var(--bd)"/>`).join('')}${r}<text x="52" y="${4*h+16}" font-size="11" fill="var(--mu)">${hr(n.t0)}</text><text x="368" y="${4*h+16}" font-size="11" text-anchor="end" fill="var(--mu)">${hr(n.t0+L*6e4)}</text></svg>`}
-const TG=['Café','Álcool','Estresse','Exercício','Tela até tarde','Refeição pesada'];
-function res(n,old){cur=n;const s=stt(n),q=n.sc,col=q>=75?'var(--c1)':q>=55?'var(--c2)':'var(--c0)',k=2*Math.PI*44;
-const ins=[s.as>=n.gl*60?'Você atingiu a meta de sono.':'Faltaram '+fm(n.gl*60-s.as)+' para a meta de '+n.gl+' h.',n.woke>0?`O alarme tocou ${n.woke} min antes do horário final, em sono leve.`:'',n.mic?(n.noise?n.noise+' min com ruídos ou roncos.':'Noite silenciosa, sem roncos detectados.'):'Sem microfone: roncos não são detectados.'].filter(Boolean);
-$('#res').innerHTML=`<button onclick="${old?'hist_()':"show('home')"}" style="width:auto;padding:8px 14px">Fechar</button><h2 style="margin-top:12px">${n.sim?'Noite simulada':new Date(n.t0).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})}</h2>
-<div class="cd it"><svg width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="55" r="44" fill="none" stroke="var(--bd)" stroke-width="9"/><circle cx="55" cy="55" r="44" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${k*q/100} ${k}" transform="rotate(-90 55 55)"/><text x="55" y="64" text-anchor="middle" font-size="30" font-family="Georgia,serif" fill="var(--tx)">${q}</text></svg>
-<div style="flex:1;padding-left:16px"><b style="font:400 26px Georgia,serif">${fm(s.as)}</b> <span class="mu">dormindo</span><div class="mu sm">Na cama ${fm(s.L)} · eficiência ${Math.round(s.ef*100)}%</div></div></div>
-<div class="cd">${hyp(n)}</div>
-<div class="cd">${[[3,s.d],[2,s.l],[1,s.r],[0,s.aw]].map(([k,v])=>`<div class="sm" style="display:flex;justify-content:space-between"><span>${NM[k]}</span><span class="mu">${fm(v)} · ${Math.round(v/s.L*100)}%</span></div><div class="bar"><i style="width:${v/s.L*100}%;background:${C[k]}"></i></div>`).join('')}</div>
-<div class="cd">${ins.map(t=>`<p style="margin:4px 0">${t}</p>`).join('')}</div>
-${n.sim?'':`<div class="cd"><div class="mu sm" style="margin-bottom:8px">O que influenciou sua noite?</div><div class="tg">${TG.map(t=>`<button class="${n.tags.includes(t)?'on':''}" onclick="tg('${t}')">${t}</button>`).join('')}</div></div>`}
-<p class="mu sm">As fases são estimadas por movimento, som e ciclos de sono. Servem como referência, não como exame médico.</p>`;show('res')}
-function tg(t){const i=cur.tags.indexOf(t);i<0?cur.tags.push(t):cur.tags.splice(i,1);sv('hist',H);res(cur,1)}
-function hist_(){show('his');const l=H.slice(0,7).reverse(),av=(f)=>H.length?Math.round(H.slice(0,7).reduce((a,n)=>a+f(n),0)/Math.min(7,H.length)):0;
-let ch='';if(l.length){const W=340,mx=Math.max(10,...l.map(n=>n.gl),...l.map(n=>stt(n).as/60));ch=`<svg viewBox="0 0 370 150" width="100%" role="img" aria-label="Horas dormidas nas últimas noites">${l.map((n,i)=>{const hh=stt(n).as/60/mx*110,x=20+i*(W/7);return `<rect x="${x}" y="${120-hh}" width="28" height="${hh}" rx="6" fill="var(--c2)"/><text x="${x+14}" y="138" font-size="10" text-anchor="middle" fill="var(--mu)">${new Date(n.t0).toLocaleDateString('pt-BR',{weekday:'short'}).slice(0,3)}</text>`}).join('')}<line x1="10" x2="365" y1="${120-l[0].gl/mx*110}" y2="${120-l[0].gl/mx*110}" stroke="var(--am)" stroke-dasharray="4 4"/></svg><div class="mu sm">Linha tracejada: sua meta</div>`}
-$('#his').innerHTML=`<h2>Histórico</h2>`+(H.length?`<div class="cd st"><div><b>${av(n=>n.sc)}</b><span class="mu sm">pontuação média</span></div><div><b>${fm(av(n=>stt(n).as))}</b><span class="mu sm">média por noite</span></div></div><div class="cd">${ch}</div>`+H.map((n,i)=>`<button class="it" onclick="res(H[${i}],1)"><span>${new Date(n.t0).toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'})}<br><span class="mu sm">${hr(n.t0)} – ${hr(n.t0+n.e.length*6e4)}</span></span><span><b style="font:400 22px Georgia,serif">${n.sc}</b> <span class="mu sm">${fm(stt(n).as)}</span></span></button>`).join('')+`<button onclick="if(confirm('Apagar todo o histórico?')){H=[];sv('hist',H);hist_()}" class="mu sm" style="margin-top:16px">Apagar histórico</button>`:`<p class="mu">Nenhuma noite registrada ainda. Toque em Dormir e comece o monitoramento, ou veja uma noite simulada para conhecer os gráficos.</p>`)}
-</script><script>
-(function(){const cp=window.Capacitor,LN=cp&&cp.isNativePlatform&&cp.isNativePlatform()&&cp.Plugins&&cp.Plugins.LocalNotifications;if(!LN)return;
-const sch=async at=>{try{await LN.cancel({notifications:[{id:1}]});await LN.schedule({notifications:[{id:1,title:'Bom dia',body:'Hora de acordar. Toque para abrir o Soneca.',channelId:'alarme',schedule:{at:new Date(at),allowWhileIdle:true}}]})}catch(e){}},
-clr=async()=>{try{await LN.cancel({notifications:[{id:1}]})}catch(e){}},
-disp=()=>{if(N&&!N.sim&&!N.rung&&Date.now()>=N.tg-5e3){N.rung=1;ring();$('#rg').hidden=0;$('#stp').hidden=1}},
-g0=go,f0=fim,s0=soneca;
-go=async function(sim){if(!sim){try{await LN.createChannel({id:'alarme',name:'Alarme do Soneca',importance:5,sound:'alarme.wav',vibration:true,visibility:1});await LN.requestPermissions();const x=await LN.checkExactNotificationSetting();if(x.exact_alarm!=='granted'){toast('Permita alarmes e lembretes para o despertador funcionar');await LN.changeExactNotificationSetting()}}catch(e){}}await g0(sim);if(!sim&&N)sch(N.tg)};
-fim=function(){clr();return f0()};soneca=function(){s0();if(N)sch(N.tg)};
-LN.addListener('localNotificationReceived',disp);LN.addListener('localNotificationActionPerformed',disp);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)disp()});
-})();
-</script></body></html>
+const lbl=q=>q>=85?['Excelente','var(--ok)']:q>=70?['Boa','var(--c1)']:q>=55?['Regular','var(--am)']:['Precisa melhorar','var(--c0)'];
+function hyp(n){
+  const e=[...n.e].map(Number),L=e.length,W=316,h=28;let r='',i=0;
+  while(i<L){let j=i;while(j<L&&e[j]==e[i])j++;r+=`<rect x="${52+i*W/L}" y="${e[i]*h+4}" width="${Math.max(1.5,(j-i)*W/L)}" height="${h-8}" rx="4" style="fill:${C[e[i]]}"/>`;i=j}
+  return`<svg viewBox="0 0 370 ${4*h+22}" width="100%" role="img" aria-label="Gráfico das fases do sono">${NM.map((s,k)=>`<text x="0" y="${k*h+19}" font-size="11" style="fill:var(--mu)">${s}</text><line x1="52" x2="368" y1="${k*h+h/2+4}" y2="${k*h+h/2+4}" style="stroke:var(--line)"/>`).join('')}${r}<text x="52" y="${4*h+16}" font-size="11" style="fill:var(--mu)">${hr(n.t0)}</text><text x="368" y="${4*h+16}" font-size="11" text-anchor="end" style="fill:var(--mu)">${hr(n.t0+L*6e4)}</text></svg>`}
+function summary(n){const s=stt(n);return`Minha noite no Soneca (${new Date(n.t0).toLocaleDateString('pt-BR')}): ${fm(s.as)} de sono, pontuação ${n.sc}/100, eficiência ${Math.round(s.ef*100)}%.`}
+function res(n,fromHist){
+  cur=n;const s=stt(n),q=n.sc,[lt,col]=lbl(q),k=2*Math.PI*44;
+  const ins=[
+    [s.as>=n.gl*60?IC.check:IC.target,s.as>=n.gl*60?'Você atingiu a meta de sono.':'Faltaram '+fm(n.gl*60-s.as)+' para a meta de '+n.gl+' h.'],
+    n.woke>0?[IC.alarm,`O alarme tocou ${n.woke} min antes do horário final, em sono leve.`]:null,
+    [IC.mic,n.mic?(n.noise?n.noise+' min com ruídos ou roncos.':'Noite silenciosa, sem roncos detectados.'):'Sem microfone: roncos não são detectados.']].filter(Boolean);
+  $('#res').innerHTML=`<div class="bar-top"><button class="ib" data-a="closeRes" data-v="${fromHist?1:0}" aria-label="Fechar">${IC.x}</button>${n.sim?'':`<button class="ib" data-a="share" aria-label="Compartilhar">${IC.share}</button>`}</div>
+  <h2 class="ph cap" style="margin-bottom:10px">${n.sim?'Noite simulada':new Date(n.t0).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})}</h2>
+  <div class="card rh"><svg width="116" height="116" viewBox="0 0 110 110"><circle cx="55" cy="55" r="44" fill="none" style="stroke:var(--inp)" stroke-width="9"/><circle cx="55" cy="55" r="44" fill="none" style="stroke:${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${k*q/100} ${k}" transform="rotate(-90 55 55)"/><text x="55" y="64" text-anchor="middle" font-size="30" font-weight="600" style="fill:var(--tx)">${q}</text></svg>
+   <div class="rt"><span class="lbl" style="color:${col};background:color-mix(in srgb,${col} 16%,transparent)">${lt}</span><div class="big">${fm(s.as)}</div><div class="mu sm">dormindo · na cama ${fm(s.L)}</div></div></div>
+  <div class="kp"><div><b>${Math.round(s.ef*100)}%</b><span>Eficiência</span></div><div><b>${s.as?Math.round((s.r+s.d)/s.as*100):0}%</b><span>REM + profundo</span></div><div><b>${n.noise}</b><span>Min de ruído</span></div></div>
+  <div class="card"><div class="card-h">${IC.moon} Fases do sono</div>${hyp(n)}</div>
+  <div class="card">${[[3,s.d],[2,s.l],[1,s.r],[0,s.aw]].map(([k2,v])=>`<div class="ph-r"><span>${NM[k2]}</span><span class="mu">${fm(v)} · ${Math.round(v/s.L*100)}%</span></div><div class="bar"><i style="width:${v/s.L*100}%;background:${C[k2]}"></i></div>`).join('')}</div>
+  <div class="card"><div class="card-h">${IC.star} Resumo</div>${ins.map(([i,t])=>`<div class="ins">${i}<span>${t}</span></div>`).join('')}</div>
+  ${n.sim?'':`<div class="card"><div class="card-h">O que influenciou sua noite?</div><div class="tg">${TG.map(t=>`<button class="${n.tags.includes(t)?'on':''}" data-a="tag" data-v="${t}">${t}</button>`).join('')}</div></div>`}
+  <p class="mu sm">As fases são estimadas por movimento, som e ciclos de sono. Servem como referência, não como exame médico.</p>`;
+  show('res')}
+function tgl(t){const i=cur.tags.indexOf(t);i<0?cur.tags.push(t):cur.tags.splice(i,1);sv('hist',H);const y=scrollY;res(cur,lastView=='his');scrollTo(0,y)}
+
+/* ============ histórico e insights ============ */
+function chart(l){
+  const W=340,mx=Math.max(10,S.gl,...l.map(n=>stt(n).as/60)),gy=120-S.gl/mx*104;
+  return`<svg viewBox="0 0 370 156" width="100%" role="img" aria-label="Horas dormidas nas últimas noites"><defs><linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--ac2)"/><stop offset="1" style="stop-color:var(--c3)"/></linearGradient></defs>
+  <line x1="8" x2="366" y1="${gy}" y2="${gy}" style="stroke:var(--am)" stroke-dasharray="4 4"/>
+  ${l.map((n,i)=>{const v=stt(n).as/60,hh=Math.max(3,v/mx*104),x=18+i*(W/7);return`<rect x="${x}" y="${120-hh}" width="30" height="${hh}" rx="8" fill="url(#bg1)"/><text x="${x+15}" y="${114-hh}" font-size="10" text-anchor="middle" style="fill:var(--tx)">${v.toFixed(1).replace('.',',')}</text><text x="${x+15}" y="140" font-size="10" text-anchor="middle" style="fill:var(--mu)">${wkd(n.t0).slice(0,3)}</text>`}).join('')}</svg>
+  <div class="mu sm">Linha tracejada: sua meta de ${String(S.gl).replace('.',',')} h</div>`}
+function tagInsights(){
+  const out=[];
+  TG.forEach(t=>{const w=H.filter(n=>n.tags.includes(t)),o=H.filter(n=>!n.tags.includes(t));
+    if(w.length>=2&&o.length>=2)out.push([t,Math.round(avg(w.map(n=>n.sc))-avg(o.map(n=>n.sc)))])});
+  return out.sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,3)}
+function hist_(){
+  show('his');
+  const L7=H.slice(0,7),l=[...L7].reverse();
+  const debt=L7.reduce((a,n)=>a+Math.max(0,n.gl*60-stt(n).as),0);
+  let reg='';
+  if(L7.length>=3){const b=L7.map(n=>{const d=new Date(n.t0);let m=d.getHours()*60+d.getMinutes();return m<720?m+1440:m}),mu=avg(b),sd=Math.sqrt(avg(b.map(x=>(x-mu)**2)));reg=`<div class="inf"><span>Regularidade ao dormir</span><b>±${Math.round(sd)} min</b></div>`}
+  const best=L7.length?L7.reduce((a,n)=>n.sc>a.sc?n:a):null,ti=tagInsights();
+  $('#his').innerHTML=`<h2 class="ph">Histórico</h2>`+(H.length?`
+  <div class="kpis"><div><b>${Math.round(avg(L7.map(n=>n.sc)))}</b><span>Pontuação média (7 noites)</span></div><div><b>${fm(avg(L7.map(n=>stt(n).as)))}</b><span>Média de sono por noite</span></div></div>
+  <div class="card"><div class="card-h">${IC.chart} Últimas noites</div>${chart(l)}</div>
+  <div class="card"><div class="card-h">${IC.star} Insights da semana</div>
+   <div class="inf"><span>Débito de sono</span><b class="${debt>60?'dn':'up'}">${debt?fm(debt):'Zerado'}</b></div>
+   ${reg}${best?`<div class="inf"><span>Melhor noite</span><b>${wkd(best.t0)} · ${best.sc} pts</b></div>`:''}
+   ${ti.map(([t,d])=>`<div class="inf"><span>Noites com ${t.toLowerCase()}</span><b class="${d<0?'dn':'up'}">${d>0?'+':''}${d} pts</b></div>`).join('')}
+   ${ti.length?'':'<p class="mu sm" style="margin-top:8px">Marque o que influenciou cada noite para ver aqui o que mais pesa no seu sono.</p>'}</div>
+  <div class="grp" style="margin-top:20px">Todas as noites</div>`+
+  H.map((n,i)=>{const [,col]=lbl(n.sc);return`<button class="hr" data-a="openNight" data-v="${i}"><span class="badge" style="background:${col}">${n.sc}</span><span><b>${new Date(n.t0).toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'})}</b><span class="mu sm">${hr(n.t0)} – ${hr(n.t0+n.e.length*6e4)}</span></span><span style="text-align:right"><b>${fm(stt(n).as)}</b><span class="mu sm">dormindo</span></span></button>`}).join('')
+  :`<div class="card empty">${ic('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',44)}<h3>Nenhuma noite registrada</h3><p class="mu" style="margin:6px 0 14px">Comece a dormir com o Soneca ligado, ou veja uma noite simulada para conhecer os gráficos.</p><button class="btn pri" data-a="go" data-v="1">Ver noite simulada</button></div>`)}
+
+/* ============ ações (cliques) ============ */
+const ACT={
+  tab:v=>tab(v),
+  go:v=>go(+v),
+  finish:()=>fim(),
+  dismiss:()=>dismiss(),
+  snooze:()=>snooze(),
+  onlyAlarm:()=>onlyAlarm(),
+  day:v=>{S.days^=1<<+v;sv('cfg',S);renderHome()},
+  preset:v=>{S.days=+v;sv('cfg',S);renderHome()},
+  win:v=>{S.win=+v;sv('cfg',S);renderHome()},
+  useTime:v=>{S.al=v;sv('cfg',S);renderHome();toast('Despertador ajustado para '+v)},
+  set:(v,b)=>setCfg(b.dataset.k,isNaN(+v)?v:+v),
+  preview:v=>preview(v),
+  open:v=>nat('openSettings',{type:v}),
+  cancelAlarm:async()=>{await nat('cancel');await refreshStatus();toast('Despertador cancelado')},
+  closeRes:v=>{v=='1'?hist_():(show('home'),renderHome())},
+  openNight:v=>res(H[+v],1),
+  tag:v=>tgl(v),
+  share:async()=>{const t=summary(cur);if(navigator.share){try{await navigator.share({text:t});return}catch(e){}}toast(await copy(t)?'Resumo copiado':'Não foi possível copiar')},
+  exportCsv:async()=>{if(!H.length)return toast('Ainda não há noites registradas');
+    const t='data,inicio,fim,dormindo_min,eficiencia_pct,pontuacao,ruido_min,fatores\n'+H.map(n=>{const s=stt(n);return[new Date(n.t0).toLocaleDateString('pt-BR'),hr(n.t0),hr(n.t0+n.e.length*6e4),s.as,Math.round(s.ef*100),n.sc,n.noise,'"'+n.tags.join('; ')+'"'].join(',')}).join('\n');
+    toast(await copy(t)?'Histórico copiado (CSV)':'Não foi possível copiar')},
+  clearHist:()=>{if(confirm('Apagar todo o histórico?')){H=[];sv('hist',H);toast('Histórico apagado')}}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&ACT[b.dataset.a])ACT[b.dataset.a](b.dataset.v,b)});
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.id=='al'&&t.value){S.al=t.value;sv('cfg',S);$('#tdisp').textContent=S.al;renderCdn()}
+  if(t.dataset.in=='vol'){S.vol=+t.value;sv('cfg',S);$('#volv').textContent=S.vol+'%';t.style.setProperty('--p',(S.vol-30)/70*100+'%')}});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.id=='al'&&t.value){S.al=t.value;sv('cfg',S);renderHome()}
+  if(t.dataset.in=='vol')syncAudio();
+  const k=t.dataset.chg;if(k)setCfg(k,t.type=='checkbox'?(t.checked?1:0):t.value)});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){refreshStatus();if(!$('#home').hidden)renderHome()}});
+
+/* ============ início ============ */
+$('#logo').innerHTML=IC.moon;$('#mmoon').innerHTML=IC.moon;$('#wsun').innerHTML=ic('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',44);
+$('#h-win').innerHTML=IC.sun+' Despertar inteligente';$('#h-sug').innerHTML=IC.bed+' Se dormir agora…';
+$('#bGo').innerHTML=IC.moon+'<span>Começar a dormir</span>';$('#bAl').innerHTML=IC.alarm+'<span>Só despertador</span>';$('#bAl').hidden=!A;
+$('#n-home').innerHTML=IC.moon+'<span>Dormir</span>';$('#n-his').innerHTML=IC.chart+'<span>Histórico</span>';$('#n-set').innerHTML=IC.sliders+'<span>Ajustes</span>';
+applyTheme();renderHome();refreshStatus();applyReminder();
+setInterval(()=>{if(!$('#home').hidden&&!N){renderCdn();renderBanner()}},20000);
+</script>
+</body>
+</html>
