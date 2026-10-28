@@ -86,7 +86,7 @@ async function go(sim){
 const tg=tgtT();N={sim,tg,ws:tg-S.win*6e4,e:[],sm:0,noise:0,a:0,n:0,ns:0,rung:0,woke:0,t0:sim?tg-(S.gl*60+Math.round(Math.random()*40-20))*6e4:Date.now(),next:Date.now()+6e4,bout:0};
 show('mon');$('#rg').hidden=1;$('#stp').hidden=0;$('#chp').innerHTML='';
 $('#inf').textContent=(sim?'Simulação · ':'')+'Alarme às '+hr(tg)+(S.win?' · janela desde '+hr(N.ws):'');
-if(sim){N.cl=80+Math.random()*25;tm=setInterval(dtick,20)}else{ac();await sens();NAT&&A.schedule({at:N.tg,snd:S.snd,vol:S.vol});tm=setInterval(rtick,1000);try{await document.documentElement.requestFullscreen()}catch(e){}}
+if(sim){N.cl=80+Math.random()*25;tm=setInterval(dtick,20)}else if(NAT){A.schedule({at:N.tg,snd:S.snd,vol:S.vol}).catch(()=>{});A.sleepStart({t0:N.t0,tg:N.tg,ws:N.ws,snd:S.snd,vol:S.vol}).catch(er=>toast('Falha ao iniciar o monitor: '+(er&&er.message||er)));tm=setInterval(ntick,2000);ntick()}else{ac();await sens();tm=setInterval(rtick,1000);try{await document.documentElement.requestFullscreen()}catch(e){}}
 draw()}
 function rtick(){if(NAT&&N&&!N.rung)A.status().then(r=>{if(r.ringing&&N&&!N.rung){N.rung=1;$('#rg').hidden=0;$('#stp').hidden=1}}).catch(()=>{});let lv=0,tr=0;if(an){an.getFloatTimeDomainData(buf);let q=0;for(const v of buf)q+=v*v;lv=Math.sqrt(q/buf.length);tr=Math.abs(lv-pL);pL=lv;base=base?base*.98+lv*.02:lv}
 const mv=mN?mA/mN:0;mA=mN=0;N.a+=Math.min(1,mv/.3)+Math.min(1,tr/.05)*.5;N.n++;if(lv>Math.max(.02,base*3))N.ns++;
@@ -99,8 +99,8 @@ const now=N.sim?N.t0+t*6e4:Date.now();$('#chp').innerHTML=N.sim?'<span>Simulaç�
 if(!N.rung&&t>20&&(now>=N.tg||(S.win&&now>=N.ws&&(s==0||s==2)))){N.rung=1;N.woke=Math.max(0,Math.round((N.tg-now)/6e4));if(N.sim)fim();else{ring();$('#rg').hidden=0;$('#stp').hidden=1;navigator.vibrate&&navigator.vibrate([400,200,400])}}
 draw()}
 function draw(){$('#lh').innerHTML=N.e.length>1?hyp({e:N.e.join('')}):''}
-function soneca(){hush();$('#rg').hidden=1;$('#stp').hidden=0;N.tg=N.ws=Date.now()+S.sn*6e4;N.rung=0;NAT&&A.schedule({at:N.tg,snd:S.snd,vol:S.vol});toast('Toca de novo em '+S.sn+' min')}
-function fim(){clearInterval(tm);hush();NAT&&A.cancel().catch(()=>{});try{R.st&&R.st.getTracks().forEach(t=>t.stop());removeEventListener('devicemotion',mo);WL&&WL.release();document.fullscreenElement&&document.exitFullscreen()}catch(e){}
+function soneca(){hush();$('#rg').hidden=1;$('#stp').hidden=0;N.tg=N.ws=Date.now()+S.sn*6e4;N.rung=0;N.sz=Date.now();NAT&&(A.schedule({at:N.tg,snd:S.snd,vol:S.vol}).catch(()=>{}),A.sleepSnooze({tg:N.tg}).catch(()=>{}));toast('Toca de novo em '+S.sn+' min')}
+function fim2(){clearInterval(tm);hush();NAT&&A.cancel().catch(()=>{});try{R.st&&R.st.getTracks().forEach(t=>t.stop());removeEventListener('devicemotion',mo);WL&&WL.release();document.fullscreenElement&&document.exitFullscreen()}catch(e){}
 R.st=null;if(!N||N.e.length<5){show('home');toast('Sono curto demais para gerar relatório');return}
 const n={id:Date.now(),t0:N.t0,e:N.e.join(''),noise:N.noise,gl:S.gl,woke:N.woke,sim:N.sim?1:0,mic:N.sim||R.mic?1:0,tags:[]};n.sc=sc(n);N=null;if(!n.sim){H.unshift(n);H=H.slice(0,60);sv('hist',H)}res(n)}
 /* resultados */
@@ -174,4 +174,18 @@ $('#sg').textContent='Para dormir '+S.gl+' h, deite até '+p2(Math.floor(id/60))
 $('#win').addEventListener('change',upd);mkDial();setInterval(()=>{if(!dg&&!$('#home').hidden)upd()},30000);
 
 upd();
+
+/* monitor em segundo plano (Android): o servico nativo coleta, o app so exibe */
+function napply(r){if(!r||!N||N.sim)return;N.e=[...(r.e||'')].map(Number);N.noise=r.noise||0;N.woke=r.woke||0;R.mic=r.mic?1:0;R.mot=r.mot?1:0;
+$('#chp').innerHTML='<span>'+(R.mic?'Som ativo':'Sem microfone')+'</span><span>'+(R.mot?'Movimento ativo':'Sem movimento')+'</span><span>Em segundo plano</span>';
+$('#clk').textContent=hr(Date.now());draw();
+if(r.ringing&&!N.rung&&Date.now()-(N.sz||0)>4000){N.rung=1;$('#rg').hidden=0;$('#stp').hidden=1}}
+function ntick(){if(!NAT||!N||N.sim||typeof A.sleepState!=='function')return;A.sleepState().then(napply).catch(()=>{})}
+function fim(){if(NAT&&N&&!N.sim){const f=()=>{A.sleepStop().catch(()=>{});fim2()};A.sleepState().then(r=>{napply(r);f()},f)}else fim2()}
+function restoreSleep(){if(!NAT||!A||typeof A.sleepState!=='function')return;A.sleepState().then(r=>{if(!r||N||!(r.active||(r.finished&&r.e&&r.e.length)))return;
+N={sim:0,tg:r.tg,ws:r.ws,e:[],sm:0,noise:0,a:0,n:0,ns:0,rung:0,woke:0,t0:r.t0,next:0,bout:0};show('mon');$('#rg').hidden=1;$('#stp').hidden=0;$('#chp').innerHTML='';
+$('#inf').textContent='Alarme às '+hr(r.tg)+(r.ws<r.tg?' · janela desde '+hr(r.ws):'');
+tm=setInterval(ntick,2000);napply(r);if(r.finished&&!r.active)fim()}).catch(()=>{})}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)ntick()});
+restoreSleep();
 </script></body></html>

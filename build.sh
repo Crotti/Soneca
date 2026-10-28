@@ -130,18 +130,20 @@ cat > scripts/perms.xml <<'EOF'
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
 EOF
 cat > scripts/app.xml <<'EOF'
     <service android:name=".AlarmService" android:exported="false" android:foregroundServiceType="mediaPlayback"/>
     <receiver android:name=".AlarmReceiver" android:exported="false"/>
+    <service android:name=".SleepService" android:exported="false" android:foregroundServiceType="microphone|dataSync"/>
 EOF
 cat > scripts/MainActivity.java <<'EOF'
 package com.soneca.app;
 
 import android.os.Build;
 import android.os.Bundle;
-import android.view.WindowManager;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -149,13 +151,19 @@ public class MainActivity extends BridgeActivity {
   public void onCreate(Bundle savedInstanceState) {
     registerPlugin(AlarmPlugin.class);
     super.onCreate(savedInstanceState);
-    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     if (Build.VERSION.SDK_INT >= 27) {
       setShowWhenLocked(true);
       setTurnScreenOn(true);
     }
-    if (Build.VERSION.SDK_INT >= 33) {
-      requestPermissions(new String[] {"android.permission.POST_NOTIFICATIONS"}, 1);
+    java.util.ArrayList<String> need = new java.util.ArrayList<>();
+    if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission("android.permission.RECORD_AUDIO") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+      need.add("android.permission.RECORD_AUDIO");
+    }
+    if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+      need.add("android.permission.POST_NOTIFICATIONS");
+    }
+    if (!need.isEmpty()) {
+      requestPermissions(need.toArray(new String[0]), 1);
     }
   }
 }
@@ -201,11 +209,11 @@ public class AlarmPlugin extends Plugin {
       Context x = getContext();
       Intent in = new Intent(x, AlarmReceiver.class)
           .putExtra("snd", c.getString("snd", "amanhecer"))
-          .putExtra("vol", c.getInt("vol", 100));
+          .putExtra("vol", c.getData().optInt("vol", 100));
       PendingIntent pi = PendingIntent.getBroadcast(x, 7, in, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
       PendingIntent show = PendingIntent.getActivity(x, 8, new Intent(x, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
       AlarmManager am = (AlarmManager) x.getSystemService(Context.ALARM_SERVICE);
-      am.setAlarmClock(new AlarmManager.AlarmClockInfo(c.getDouble("at").longValue(), show), pi);
+      am.setAlarmClock(new AlarmManager.AlarmClockInfo(c.getData().optLong("at"), show), pi);
       c.resolve();
     } catch (Exception e) {
       c.reject(String.valueOf(e.getMessage()));
@@ -225,7 +233,7 @@ public class AlarmPlugin extends Plugin {
     Context x = getContext();
     Intent s = new Intent(x, AlarmService.class)
         .putExtra("snd", c.getString("snd", "amanhecer"))
-        .putExtra("vol", c.getInt("vol", 100))
+        .putExtra("vol", c.getData().optInt("vol", 100))
         .putExtra("pv", c.getBoolean("pv", false));
     if (Build.VERSION.SDK_INT >= 26) x.startForegroundService(s);
     else x.startService(s);
@@ -236,6 +244,64 @@ public class AlarmPlugin extends Plugin {
   public void stop(PluginCall c) {
     Context x = getContext();
     x.stopService(new Intent(x, AlarmService.class));
+    c.resolve();
+  }
+
+  @PluginMethod
+  public void sleepStart(PluginCall c) {
+    try {
+      Context x = getContext().getApplicationContext();
+      JSObject d = c.getData();
+      SleepService.begin(x, d.optLong("t0"), d.optLong("tg"), d.optLong("ws"), d.optString("snd", "amanhecer"), d.optInt("vol", 100));
+      Intent s = new Intent(x, SleepService.class);
+      if (Build.VERSION.SDK_INT >= 26) x.startForegroundService(s);
+      else x.startService(s);
+      c.resolve();
+    } catch (Exception e) {
+      c.reject(String.valueOf(e.getMessage()));
+    }
+  }
+
+  @PluginMethod
+  public void sleepState(PluginCall c) {
+    Context x = getContext().getApplicationContext();
+    SleepService.ensureLoaded(x);
+    if (SleepService.active && !SleepService.running) {
+      try {
+        Intent s = new Intent(x, SleepService.class);
+        if (Build.VERSION.SDK_INT >= 26) x.startForegroundService(s);
+        else x.startService(s);
+      } catch (Exception e) {
+      }
+    }
+    JSObject r = new JSObject();
+    r.put("active", SleepService.active);
+    r.put("finished", SleepService.finished);
+    r.put("running", SleepService.running);
+    r.put("e", SleepService.eStr());
+    r.put("noise", SleepService.noise);
+    r.put("woke", SleepService.woke);
+    r.put("rung", SleepService.rung);
+    r.put("mic", SleepService.mic);
+    r.put("mot", SleepService.mot);
+    r.put("t0", SleepService.t0);
+    r.put("tg", SleepService.tg);
+    r.put("ws", SleepService.ws);
+    r.put("ringing", AlarmService.ringing);
+    c.resolve(r);
+  }
+
+  @PluginMethod
+  public void sleepStop(PluginCall c) {
+    Context x = getContext().getApplicationContext();
+    x.stopService(new Intent(x, SleepService.class));
+    SleepService.clear(x);
+    c.resolve();
+  }
+
+  @PluginMethod
+  public void sleepSnooze(PluginCall c) {
+    SleepService.snooze(getContext().getApplicationContext(), c.getData().optLong("tg"));
     c.resolve();
   }
 
@@ -382,6 +448,396 @@ public class AlarmService extends Service {
   }
 }
 EOF
+cat > scripts/SleepService.java <<'SLEEP_EOF'
+package com.soneca.app;
+
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
+import android.os.Build;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.PowerManager;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+public class SleepService extends Service implements SensorEventListener {
+  static volatile boolean running = false;
+  static volatile boolean active = false;
+  static volatile boolean finished = false;
+  static volatile boolean rung = false;
+  static volatile boolean mic = false;
+  static volatile boolean mot = false;
+  static volatile long t0 = 0;
+  static volatile long tg = 0;
+  static volatile long ws = 0;
+  static volatile int noise = 0;
+  static volatile int woke = 0;
+  static volatile int vol = 100;
+  static volatile String snd = "amanhecer";
+  static volatile double lastRms = 0;
+  static double sm = 0.12;
+  static final StringBuilder eps = new StringBuilder();
+  static SleepService inst;
+
+  Handler h = new Handler(Looper.getMainLooper());
+  PowerManager.WakeLock wl;
+  SensorManager sman;
+  AudioRecord rec;
+  volatile boolean micOn = false;
+  double pA = -1;
+  double mA = 0;
+  double acc = 0;
+  double pL = 0;
+  double base = 0;
+  int mN = 0;
+  int cnt = 0;
+  int ns = 0;
+  long next = 0;
+
+  static synchronized String eStr() {
+    return eps.toString();
+  }
+
+  static synchronized void begin(Context c, long a0, long a1, long a2, String a3, int a4) {
+    t0 = a0;
+    tg = a1;
+    ws = a2;
+    snd = a3;
+    vol = a4;
+    eps.setLength(0);
+    noise = 0;
+    woke = 0;
+    rung = false;
+    sm = 0.12;
+    finished = false;
+    active = true;
+    mic = false;
+    mot = false;
+    save(c);
+  }
+
+  static synchronized void save(Context c) {
+    c.getSharedPreferences("sleep", Context.MODE_PRIVATE).edit()
+        .putBoolean("active", active)
+        .putBoolean("finished", finished)
+        .putBoolean("rung", rung)
+        .putLong("t0", t0)
+        .putLong("tg", tg)
+        .putLong("ws", ws)
+        .putString("snd", snd)
+        .putInt("vol", vol)
+        .putString("e", eps.toString())
+        .putInt("noise", noise)
+        .putInt("woke", woke)
+        .putFloat("sm", (float) sm)
+        .apply();
+  }
+
+  static synchronized void load(Context c) {
+    SharedPreferences p = c.getSharedPreferences("sleep", Context.MODE_PRIVATE);
+    active = p.getBoolean("active", false);
+    finished = p.getBoolean("finished", false);
+    rung = p.getBoolean("rung", false);
+    t0 = p.getLong("t0", 0);
+    tg = p.getLong("tg", 0);
+    ws = p.getLong("ws", 0);
+    snd = p.getString("snd", "amanhecer");
+    vol = p.getInt("vol", 100);
+    eps.setLength(0);
+    eps.append(p.getString("e", ""));
+    noise = p.getInt("noise", 0);
+    woke = p.getInt("woke", 0);
+    sm = p.getFloat("sm", 0.12f);
+  }
+
+  static synchronized void ensureLoaded(Context c) {
+    if (!active && !finished && eps.length() == 0) load(c);
+  }
+
+  static synchronized void clear(Context c) {
+    active = false;
+    finished = false;
+    rung = false;
+    eps.setLength(0);
+    noise = 0;
+    woke = 0;
+    c.getSharedPreferences("sleep", Context.MODE_PRIVATE).edit().clear().apply();
+  }
+
+  static synchronized void snooze(Context c, long newTg) {
+    tg = newTg;
+    ws = newTg;
+    rung = false;
+    save(c);
+    final SleepService s = inst;
+    if (s != null) {
+      s.h.post(new Runnable() {
+        @Override
+        public void run() {
+          s.notifyState();
+        }
+      });
+    }
+  }
+
+  static int est(int t, double s, boolean hs) {
+    if (t < 8) return (t < 4 || (hs && s > 0.15)) ? 0 : 2;
+    if (hs && s > 0.55) return 0;
+    if (hs && s > 0.22) return 2;
+    double p = (t % 90) / 90.0;
+    int b = p < 0.1 ? 2 : p < 0.5 ? (t < 280 ? 3 : 2) : p < 0.6 ? 2 : 1;
+    if (hs && s > 0.1 && b == 3) b = 2;
+    return b;
+  }
+
+  @Override
+  public IBinder onBind(Intent i) {
+    return null;
+  }
+
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    inst = this;
+    sman = (SensorManager) getSystemService(SENSOR_SERVICE);
+  }
+
+  Notification buildNotification() {
+    NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    if (Build.VERSION.SDK_INT >= 26) {
+      NotificationChannel ch = new NotificationChannel("sono", "Monitor de sono", NotificationManager.IMPORTANCE_LOW);
+      ch.setShowBadge(false);
+      nm.createNotificationChannel(ch);
+    }
+    PendingIntent open = PendingIntent.getActivity(this, 9,
+        new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP),
+        PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    String hhmm = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date(tg));
+    Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, "sono") : new Notification.Builder(this);
+    b.setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+        .setContentTitle("Soneca está funcionando")
+        .setContentText("Monitorando seu sono · alarme às " + hhmm)
+        .setContentIntent(open)
+        .setOngoing(true)
+        .setOnlyAlertOnce(true)
+        .setUsesChronometer(true)
+        .setWhen(t0)
+        .setShowWhen(true)
+        .setCategory(Notification.CATEGORY_SERVICE);
+    return b.build();
+  }
+
+  void notifyState() {
+    ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).notify(2, buildNotification());
+  }
+
+  @Override
+  public int onStartCommand(Intent in, int flags, int id) {
+    ensureLoaded(this);
+    if (!active) {
+      stopSelf();
+      return START_NOT_STICKY;
+    }
+    boolean canMic = Build.VERSION.SDK_INT < 23 || checkSelfPermission("android.permission.RECORD_AUDIO") == PackageManager.PERMISSION_GRANTED;
+    Notification nt = buildNotification();
+    try {
+      if (Build.VERSION.SDK_INT >= 30 && canMic) startForeground(2, nt, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+      else if (Build.VERSION.SDK_INT >= 29) startForeground(2, nt, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+      else startForeground(2, nt);
+    } catch (Exception ex) {
+      stopSelf();
+      return START_NOT_STICKY;
+    }
+    if (running) return START_NOT_STICKY;
+    running = true;
+    wl = ((PowerManager) getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "soneca:sono");
+    wl.acquire(14 * 60 * 60 * 1000L);
+    if (sman != null) {
+      Sensor a = sman.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+      if (a != null) sman.registerListener(this, a, SensorManager.SENSOR_DELAY_GAME);
+    }
+    if (canMic) startMic();
+    next = t0 + (eps.length() + 1) * 60000L;
+    h.postDelayed(tick, 1000);
+    return START_NOT_STICKY;
+  }
+
+  void startMic() {
+    try {
+      int sr = 16000;
+      int min = AudioRecord.getMinBufferSize(sr, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+      if (min <= 0) return;
+      AudioRecord r = new AudioRecord(MediaRecorder.AudioSource.MIC, sr, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, Math.max(min, 4096));
+      if (r.getState() != AudioRecord.STATE_INITIALIZED) {
+        r.release();
+        return;
+      }
+      rec = r;
+      r.startRecording();
+      mic = true;
+      micOn = true;
+      final AudioRecord rr = r;
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          short[] b = new short[1024];
+          while (micOn) {
+            int n = rr.read(b, 0, b.length);
+            if (n > 0) {
+              double q = 0;
+              for (int i = 0; i < n; i++) {
+                double v = b[i] / 32768.0;
+                q += v * v;
+              }
+              lastRms = Math.sqrt(q / n);
+            } else if (n < 0) {
+              break;
+            }
+          }
+        }
+      }).start();
+    } catch (Exception ex) {
+      mic = false;
+    }
+  }
+
+  void stopMic() {
+    micOn = false;
+    AudioRecord r = rec;
+    rec = null;
+    if (r != null) {
+      try {
+        r.stop();
+      } catch (Exception ex) {
+      }
+      try {
+        r.release();
+      } catch (Exception ex) {
+      }
+    }
+  }
+
+  @Override
+  public void onSensorChanged(SensorEvent ev) {
+    if (ev.values == null || ev.values.length < 3) return;
+    mot = true;
+    double m = Math.sqrt(ev.values[0] * ev.values[0] + ev.values[1] * ev.values[1] + ev.values[2] * ev.values[2]);
+    if (pA >= 0) {
+      mA += Math.abs(m - pA);
+      mN++;
+    }
+    pA = m;
+  }
+
+  @Override
+  public void onAccuracyChanged(Sensor s, int a) {
+  }
+
+  final Runnable tick = new Runnable() {
+    @Override
+    public void run() {
+      if (!active) return;
+      double lv = mic ? lastRms : 0;
+      double tr = Math.abs(lv - pL);
+      pL = lv;
+      base = base > 0 ? base * 0.98 + lv * 0.02 : lv;
+      double mv = mN > 0 ? mA / mN : 0;
+      mA = 0;
+      mN = 0;
+      acc += Math.min(1, mv / 0.3) + Math.min(1, tr / 0.05) * 0.5;
+      cnt++;
+      if (lv > Math.max(0.02, base * 3)) ns++;
+      long now = System.currentTimeMillis();
+      while (now >= next) {
+        epoch(Math.min(1, 3 * acc / Math.max(1, cnt)), ns >= 8, now);
+        acc = 0;
+        cnt = 0;
+        ns = 0;
+        next += 60000;
+      }
+      if (now > tg + 90 * 60000L) {
+        finishSelf();
+        return;
+      }
+      h.postDelayed(this, 1000);
+    }
+  };
+
+  void epoch(double act, boolean nz, long now) {
+    boolean hs = mic || mot;
+    int t;
+    int s;
+    synchronized (SleepService.class) {
+      sm = hs ? sm * 0.7 + act * 0.3 : 0.12;
+      t = eps.length();
+      s = est(t, sm, hs);
+      eps.append((char) ('0' + s));
+      if (nz && s != 0) noise++;
+    }
+    if (!rung && t > 20 && (now >= tg || (ws < tg && now >= ws && (s == 0 || s == 2)))) {
+      rung = true;
+      woke = (int) Math.max(0, Math.round((tg - now) / 60000.0));
+      fireNow();
+    }
+    save(this);
+  }
+
+  void fireNow() {
+    try {
+      Intent in = new Intent(this, AlarmReceiver.class).putExtra("snd", snd).putExtra("vol", vol);
+      PendingIntent pi = PendingIntent.getBroadcast(this, 7, in, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+      PendingIntent show = PendingIntent.getActivity(this, 8, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
+      AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+      am.setAlarmClock(new AlarmManager.AlarmClockInfo(System.currentTimeMillis() + 800, show), pi);
+    } catch (Exception ex) {
+    }
+  }
+
+  void finishSelf() {
+    synchronized (SleepService.class) {
+      active = false;
+      finished = true;
+      save(this);
+    }
+    stopSelf();
+  }
+
+  @Override
+  public void onDestroy() {
+    h.removeCallbacksAndMessages(null);
+    try {
+      if (sman != null) sman.unregisterListener(this);
+    } catch (Exception ex) {
+    }
+    stopMic();
+    try {
+      if (wl != null && wl.isHeld()) wl.release();
+    } catch (Exception ex) {
+    }
+    running = false;
+    inst = null;
+    super.onDestroy();
+  }
+}
+SLEEP_EOF
 npm install --no-audit --no-fund
 npx cap add android
 M=android/app/src/main
