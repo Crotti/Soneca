@@ -390,6 +390,84 @@ cp scripts/amanhecer.wav scripts/sino.wav scripts/pulso.wav $M/res/raw/
 grep -q RECORD_AUDIO $M/AndroidManifest.xml || sed -i '/<\/manifest>/e cat scripts/perms.xml' $M/AndroidManifest.xml
 grep -q AlarmService $M/AndroidManifest.xml || sed -i '/<\/application>/e cat scripts/app.xml' $M/AndroidManifest.xml
 cp scripts/*.java $M/java/com/soneca/app/
+cat > scripts/icon.py <<'ICON_EOF'
+import os,sys,glob,math
+from PIL import Image,ImageDraw,ImageChops,ImageFilter,ImageOps
+
+C_TOP=(23,16,74); C_BOT=(92,70,214)      # noite: indigo -> violeta
+M_TOP=(255,244,224); M_BOT=(255,196,140)  # lua: creme -> pessego
+
+def grad(w,h,c1,c2,diag=False):
+    g=Image.linear_gradient('L').resize((w,h))
+    if diag: g=g.rotate(-35,resample=Image.BICUBIC,expand=False)
+    return ImageOps.colorize(g,c1,c2).convert('RGBA')
+
+def star(d,cx,cy,r,fill):
+    pts=[]
+    for i in range(8):
+        a=math.pi/4*i-math.pi/2
+        rr=r if i%2==0 else r*0.28
+        pts.append((cx+rr*math.cos(a),cy+rr*math.sin(a)))
+    d.polygon(pts,fill=fill)
+
+def art(w,h,moon):
+    """moon = diametro da lua em fracao do menor lado; desenha centrado."""
+    S=2; W,H=w*S,h*S; m=min(W,H)
+    img=grad(W,H,C_TOP,C_BOT)
+    # brilho suave atras da lua
+    cx,cy=W/2,H/2
+    R=m*moon/2
+    glow=Image.new('L',(W,H),0); ImageDraw.Draw(glow).ellipse((cx-R*1.25,cy-R*1.25,cx+R*1.25,cy+R*1.25),fill=120)
+    glow=glow.filter(ImageFilter.GaussianBlur(R*0.45))
+    img=Image.composite(Image.new('RGBA',(W,H),(150,130,255,255)),img,glow.point(lambda v:int(v*0.55)))
+    # lua crescente
+    ox=R*0.14
+    mask=Image.new('L',(W,H),0); d=ImageDraw.Draw(mask)
+    d.ellipse((cx+ox-R,cy-R,cx+ox+R,cy+R),fill=255)
+    cut=Image.new('L',(W,H),0)
+    ccx,ccy,cr=cx+ox+R*0.58,cy-R*0.14,R*0.90
+    ImageDraw.Draw(cut).ellipse((ccx-cr,ccy-cr,ccx+cr,ccy+cr),fill=255)
+    cres=ImageChops.subtract(mask,cut)
+    fill=grad(W,H,M_TOP,M_BOT,diag=True)
+    img.paste(fill,(0,0),cres)
+    # estrelas
+    sd=ImageDraw.Draw(img)
+    for (dx,dy,r,a) in [(0.78,-0.62,0.20,255),(1.12,0.02,0.11,235),(1.0,0.58,0.12,225),(-0.62,-0.98,0.07,200)]:
+        star(sd,cx+R*dx,cy+R*dy,R*r,(255,248,235,a))
+    return img.resize((w,h),Image.LANCZOS)
+
+def squircle(img,r=0.22):
+    w,h=img.size
+    m=Image.new('L',(w*4,h*4),0); ImageDraw.Draw(m).rounded_rectangle((0,0,w*4-1,h*4-1),radius=int(w*4*r),fill=255)
+    out=img.copy(); out.putalpha(m.resize((w,h),Image.LANCZOS)); return out
+
+def circle(img):
+    w,h=img.size
+    m=Image.new('L',(w*4,h*4),0); ImageDraw.Draw(m).ellipse((0,0,w*4-1,h*4-1),fill=255)
+    out=img.copy(); out.putalpha(m.resize((w,h),Image.LANCZOS)); return out
+
+if __name__=='__main__':
+    res=sys.argv[1] if len(sys.argv)>1 else 'res'
+    dens={'mdpi':1,'hdpi':1.5,'xhdpi':2,'xxhdpi':3,'xxxhdpi':4}
+    for k,f in dens.items():
+        d=os.path.join(res,'mipmap-'+k); os.makedirs(d,exist_ok=True)
+        fg=int(108*f); lg=int(48*f)
+        art(fg,fg,0.40).convert('RGB').save(os.path.join(d,'ic_launcher_foreground.png'))
+        base=art(lg*4,lg*4,0.60)
+        squircle(base.resize((lg,lg),Image.LANCZOS)).save(os.path.join(d,'ic_launcher.png'))
+        circle(base.resize((lg,lg),Image.LANCZOS)).save(os.path.join(d,'ic_launcher_round.png'))
+    v=os.path.join(res,'mipmap-anydpi-v26'); os.makedirs(v,exist_ok=True)
+    ad='<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n    <background android:drawable="@color/ic_launcher_background"/>\n    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>\n</adaptive-icon>\n'
+    for n in ('ic_launcher.xml','ic_launcher_round.xml'): open(os.path.join(v,n),'w').write(ad)
+    os.makedirs(os.path.join(res,'values'),exist_ok=True)
+    open(os.path.join(res,'values','ic_launcher_background.xml'),'w').write('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#2A1F78</color>\n</resources>\n')
+    n=0
+    for p in glob.glob(os.path.join(res,'drawable*','splash.png')):
+        w,h=Image.open(p).size
+        art(w,h,0.28 if h>=w else 0.30).convert('RGB').save(p); n+=1
+    print('icones gerados; splash:',n)
+ICON_EOF
+(python3 -m venv /tmp/iconvenv && /tmp/iconvenv/bin/pip install --quiet pillow && /tmp/iconvenv/bin/python scripts/icon.py "$M/res") || echo "ICON_FAIL: mantendo icone padrao"
 sed -i "s/versionCode 1/versionCode ${BN}/; s/versionName \"1.0\"/versionName \"${VER}\"/" android/app/build.gradle
 grep -n "versionCode\|versionName" android/app/build.gradle
 npx cap sync android
